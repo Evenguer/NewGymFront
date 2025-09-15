@@ -1,0 +1,80 @@
+/* Estilos para corregir problemas de z-index en los selectores dentro de modales */
+
+/* Asegurarse que los modales tengan un z-index alto pero no el máximo */
+.modal-container {
+  z-index: 50 !important;
+  position: fixed;
+  inset: 0;
+}
+
+/* Hacer que el contenido del modal tenga un z-index adecuado */
+.modal-content {
+  z-index: 51 !important;
+  position: relative;
+}
+
+/* Estilos para el wrapper de los selectores */
+.select-wrapper {
+  position: relative;
+  z-index: 60 !important;
+}
+
+/* Estilos para los selectores personalizados */
+.custom-select {
+  position: relative;
+  z-index: 60 !important;
+}
+
+/* Asegurar que los portales de Headless UI aparezcan por encima */
+[data-headlessui-portal] {
+  position: fixed !important;
+  z-index: 2000 !important;
+}
+
+/* Elementos dentro de los portales */
+[data-headlessui-portal] > * {
+  z-index: 2000 !important;
+}
+
+/* Paneles de selección de Tremor */
+.tremor-SelectPanel, 
+.tremor-MultiSelectPanel {
+  z-index: 2000 !important;
+  position: relative !important;
+}
+
+/* Listboxes y menús desplegables */
+[role="listbox"],
+[role="menu"] {
+  z-index: 2000 !important;
+}
+
+/* Aplicar estilo a los selectores cuando están abiertos */
+[data-headlessui-state="open"] {
+  z-index: 1000 !important;
+}
+
+/* Asegurar que los selectores de Tremor aparezcan correctamente */
+.tremor-Select-root, 
+.tremor-MultiSelect-root {
+  position: relative;
+  z-index: 60 !important;
+}
+
+/* Estilo específico para los elementos SelectItem/MultiSelectItem */
+.tremor-SelectItem, 
+.tremor-MultiSelectItem {
+  z-index: 2000 !important;
+}
+
+/* Asegurar que las opciones aparezcan por encima de todo */
+div[role="option"] {
+  z-index: 2000 !important;
+}
+
+/* Ajustar el box-shadow de los paneles para mejorar la visibilidad */
+.tremor-SelectPanel, 
+.tremor-MultiSelectPanel {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 
+              0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}

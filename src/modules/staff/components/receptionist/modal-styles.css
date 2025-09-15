@@ -1,0 +1,39 @@
+/* Estilos para corregir problemas de z-index en los selectores dentro de modales */
+.modal-container {
+  z-index: 50 !important;
+  position: fixed;
+  inset: 0;
+}
+
+.modal-content {
+  z-index: 51 !important;
+  position: relative;
+}
+
+.select-wrapper {
+  position: relative;
+  z-index: 60 !important;
+}
+
+/* Asegurar que los portales de Headless UI aparezcan por encima */
+[data-headlessui-portal] {
+  position: fixed !important;
+  z-index: 2000 !important;
+}
+
+/* Elementos dentro de los portales */
+[data-headlessui-portal] > * {
+  z-index: 2000 !important;
+}
+
+/* Paneles de selección de Tremor */
+.tremor-SelectPanel, 
+.tremor-MultiSelectPanel {
+  z-index: 2000 !important;
+  position: relative !important;
+}
+
+[role="listbox"],
+[role="menu"] {
+  z-index: 2000 !important;
+}
