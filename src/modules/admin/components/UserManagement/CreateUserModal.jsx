@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, Title, TextInput, Button } from '@tremor/react';
-import { EnhancedSelect as Select, EnhancedMultiSelect as MultiSelect, SelectItem, MultiSelectItem } from './SelectWrapper';
+import { EnhancedSelect as Select, SelectItem } from './SelectWrapper';
 import { register } from '../../../../shared/services/authAPI';
-import { listEspecialidades } from '../../../../shared/services/especialidadAPI';
+
 import { useNotification } from '../../../../shared/hooks/useNotification';
 import './modal-styles.css';
 import {
   isValidDNI,
   isValidPhone,
-  isValidRUC,
   isStrongPassword,
   isValidEmail,
   isValidUsername,
@@ -21,7 +20,7 @@ import { isOver18, getMaxBirthDate } from '../../../../shared/utils/dateUtils';
 
 const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
   const notify = useNotification();
-  const [especialidades, setEspecialidades] = useState([]);
+
   const initialFormData = {
     nombreUsuario: '',
     contrasena: '',
@@ -34,33 +33,31 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
     genero: '',
     rol: '',
     direccion: '',
-    ruc: '',
     salario: '',
     fechaContratacion: '',
-    tipoInstructor: '',
-    cupoMaximo: '',
-    especialidadesIds: []
+    tipoInstructor: 'ESTANDAR',
+    cupoMaximo: ''
   };
 
   const [formData, setFormData] = useState(initialFormData);
   const [formErrors, setFormErrors] = useState({});
 
-  useEffect(() => {
-    const cargarEspecialidades = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const data = await listEspecialidades(token);
-        setEspecialidades(data);
-      } catch (error) {
-        console.error('Error al cargar especialidades:', error);
-      }
-    };
-    cargarEspecialidades();
-  }, []);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     let finalValue = value;
+
+    // Si cambia el rol, limpiamos los campos de usuario y contraseña si no es recepcionista
+    if (name === 'rol' && value !== 'RECEPCIONISTA') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        nombreUsuario: '',
+        contrasena: ''
+      }));
+      return;
+    }
 
     // Aplicar restricciones específicas según el campo
     switch (name) {
@@ -115,27 +112,24 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
     }
   };
 
-  const handleEspecialidadesChange = (values) => {
-    setFormData(prevData => ({
-      ...prevData,
-      especialidadesIds: values
-    }));
-  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errors = {};
 
-    // Validaciones básicas para todos los usuarios
-    if (!formData.nombreUsuario) {
-      errors.nombreUsuario = 'El nombre de usuario es requerido';
-    } else if (!isValidUsername(formData.nombreUsuario)) {
-      errors.nombreUsuario = ERROR_MESSAGES.username;
-    }
+    // Validaciones de usuario y contraseña solo para recepcionistas
+    if (formData.rol === 'RECEPCIONISTA') {
+      if (!formData.nombreUsuario) {
+        errors.nombreUsuario = 'El nombre de usuario es requerido para recepcionistas';
+      } else if (!isValidUsername(formData.nombreUsuario)) {
+        errors.nombreUsuario = ERROR_MESSAGES.username;
+      }
 
-    if (!formData.contrasena) {
-      errors.contrasena = 'La contraseña es requerida';
-    } else if (!isStrongPassword(formData.contrasena)) {
-      errors.contrasena = ERROR_MESSAGES.password;
+      if (!formData.contrasena) {
+        errors.contrasena = 'La contraseña es requerida para recepcionistas';
+      } else if (!isStrongPassword(formData.contrasena)) {
+        errors.contrasena = ERROR_MESSAGES.password;
+      }
     }
 
     if (!formData.nombre) {
@@ -182,14 +176,6 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
 
     // Validaciones específicas para entrenadores
     if (formData.rol === 'ENTRENADOR') {
-      if (!formData.tipoInstructor) {
-        errors.tipoInstructor = 'Debe seleccionar el tipo de instructor';
-      }
-
-      if (!formData.especialidadesIds || formData.especialidadesIds.length === 0) {
-        errors.especialidadesIds = 'Debe seleccionar al menos una especialidad';
-      }
-
       if (formData.tipoInstructor === 'PREMIUM') {
         if (!formData.cupoMaximo) {
           errors.cupoMaximo = 'El cupo máximo es requerido para entrenadores premium';
@@ -201,12 +187,6 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
 
     // Validaciones para empleados (entrenadores y recepcionistas)
     if (formData.rol === 'ENTRENADOR' || formData.rol === 'RECEPCIONISTA') {
-      if (formData.ruc) {
-        if (!isValidRUC(formData.ruc)) {
-          errors.ruc = ERROR_MESSAGES.ruc;
-        }
-      }
-      // El campo RUC puede estar vacío, no es obligatorio
       if (!formData.salario) {
         errors.salario = 'El salario es requerido para empleados';
       } else if (!isValidSalary(formData.salario)) {
@@ -248,8 +228,6 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
         return 'Ingrese un DNI válido de 8 dígitos.';
       case 'celular':
         return 'Ingrese un número celular válido de 9 dígitos comenzando con 9.';
-      case 'ruc':
-        return 'Ingrese un RUC válido de 11 dígitos comenzando con 10 o 20.';
       case 'fechaNacimiento':
         return 'Debe ser mayor de 18 años para registrarse.';
       case 'nombreUsuario':
@@ -291,11 +269,17 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
                   onChange={handleInputChange}
                   error={formErrors.nombreUsuario}
                   placeholder="Ingrese nombre de usuario"
+                  disabled={formData.rol !== 'RECEPCIONISTA'}
+                  className={formData.rol !== 'RECEPCIONISTA' ? 'bg-gray-100' : ''}
                 />
                 {formErrors.nombreUsuario && (
                   <p className="text-red-500 text-xs mt-1">{formErrors.nombreUsuario}</p>
                 )}
-                <p className="text-gray-500 text-xs mt-1">{getHelpMessage('nombreUsuario')}</p>
+                <p className="text-gray-500 text-xs mt-1">
+                  {formData.rol !== 'RECEPCIONISTA' 
+                    ? 'Solo disponible para recepcionistas' 
+                    : getHelpMessage('nombreUsuario')}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -308,11 +292,17 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
                   onChange={handleInputChange}
                   error={formErrors.contrasena}
                   placeholder="Ingrese contraseña"
+                  disabled={formData.rol !== 'RECEPCIONISTA'}
+                  className={formData.rol !== 'RECEPCIONISTA' ? 'bg-gray-100' : ''}
                 />
                 {formErrors.contrasena && (
                   <p className="text-red-500 text-xs mt-1">{formErrors.contrasena}</p>
                 )}
-                <p className="text-gray-500 text-xs mt-1">{getHelpMessage('contrasena')}</p>
+                <p className="text-gray-500 text-xs mt-1">
+                  {formData.rol !== 'RECEPCIONISTA' 
+                    ? 'Solo disponible para recepcionistas' 
+                    : getHelpMessage('contrasena')}
+                </p>
               </div>
             </div>
 
@@ -531,20 +521,13 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
                     Tipo de Instructor
                   </label>
                   <div className="select-wrapper">
-                    <Select
+                    <TextInput
                       name="tipoInstructor"
-                      value={formData.tipoInstructor}
-                      onValueChange={(value) => handleInputChange({ target: { name: 'tipoInstructor', value } })}
-                      className="custom-select"
-                      error={formErrors.tipoInstructor}
-                    >
-                      <SelectItem value="ESTANDAR">Estándar</SelectItem>
-                      <SelectItem value="PREMIUM">Premium</SelectItem>
-                    </Select>
+                      value="ESTANDAR"
+                      disabled={true}
+                      className="bg-gray-100"
+                    />
                   </div>
-                  {formErrors.tipoInstructor && (
-                    <p className="text-red-500 text-xs mt-1">{formErrors.tipoInstructor}</p>
-                  )}
                 </div>
                 {formData.tipoInstructor === 'PREMIUM' && (
                   <div>
@@ -563,28 +546,7 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
                       <p className="text-red-500 text-xs mt-1">{formErrors.cupoMaximo}</p>
                     )}
                   </div>
-                )}                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Especialidades
-                  </label>
-                  <div className="select-wrapper">
-                    <MultiSelect
-                      value={formData.especialidadesIds}
-                      onValueChange={handleEspecialidadesChange}
-                      placeholder="Seleccione las especialidades"
-                      className="custom-select"
-                    >
-                      {especialidades.map(especialidad => (
-                        <MultiSelectItem key={especialidad.id} value={especialidad.id}>
-                          {especialidad.nombre}
-                        </MultiSelectItem>
-                      ))}
-                    </MultiSelect>
-                  </div>
-                  {formErrors.especialidadesIds && (
-                    <p className="text-red-500 text-xs mt-1">{formErrors.especialidadesIds}</p>
-                  )}
-                </div>
+                )}
               </div>
             )}
 

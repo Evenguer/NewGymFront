@@ -45,7 +45,7 @@ const InscripcionPage = () => {
   const [planSeleccionado, setPlanSeleccionado] = useState(null);
   const [instructorSeleccionado, setInstructorSeleccionado] = useState(null);
   const [horariosInstructor, setHorariosInstructor] = useState([]);
-  const [horarioSeleccionado, setHorarioSeleccionado] = useState(null);
+  // const [horarioSeleccionado, setHorarioSeleccionado] = useState(null);
   
   // Estados para filtros de planes
   const [busquedaPlan, setBusquedaPlan] = useState('');
@@ -68,14 +68,13 @@ const InscripcionPage = () => {
   // Estados de control
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState({});
-  const [success, setSuccess] = useState(false);
+  // const [success, setSuccess] = useState(false);
   const [inscripcionCreada, setInscripcionCreada] = useState(null);
   const [pasoActual, setPasoActual] = useState(1); // 1: Cliente, 2: Plan, 3: Instructor, 4: Horario, 5: Confirmación, 6: Pago, 7: Finalizado
   
   // Estados de pago
   const [montoPagado, setMontoPagado] = useState('');
   const [metodoPago, setMetodoPago] = useState('EFECTIVO');
-  const [mostrarPago, setMostrarPago] = useState(false);
   // Efecto para auto-completar y deshabilitar montoPagado según método de pago
   useEffect(() => {
     if (["TARJETA", "BILLETERAS"].includes(metodoPago)) {
@@ -228,11 +227,7 @@ const InscripcionPage = () => {
   };
 
   // Seleccionar horario
-  const seleccionarHorario = (horario) => {
-    setHorarioSeleccionado(horario);
-    setPasoActual(5); // Paso de confirmación
-    showSnackbar('Horario seleccionado exitosamente', 'success');
-  };
+  // (Función eliminada porque no se utiliza)
 
   // Registrar inscripción
   const registrarInscripcion = async () => {
@@ -342,7 +337,7 @@ const InscripcionPage = () => {
     setPlanSeleccionado(null);
     setInstructorSeleccionado(null);
     setHorariosInstructor([]);
-    setHorarioSeleccionado(null);
+    // setHorarioSeleccionado(null);
     setBusquedaPlan('');
     setFiltroTipoPlan('TODOS');
     setFormData({
@@ -773,7 +768,7 @@ const InscripcionPage = () => {
               <div className="flex justify-center mt-6">
                 <Button 
                   onClick={() => {
-                    setHorarioSeleccionado(horariosInstructor[0]); // Seleccionar el primer horario por defecto
+                    // setHorarioSeleccionado(horariosInstructor[0]); // Seleccionar el primer horario por defecto
                     setPasoActual(5); // Ir al paso de confirmación
                     showSnackbar('Bloque de horarios seleccionado exitosamente', 'success');
                   }}

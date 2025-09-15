@@ -30,19 +30,19 @@ const getAuthConfig = () => {
 
 export const asistenciaClienteAPI = {
   /**
-   * Registra la asistencia de un cliente mediante QR
-   * @param {number} idInscripcion - ID de la inscripción
+   * Registra la asistencia de un cliente mediante DNI
+   * @param {string} dni - DNI del cliente
    * @returns {Promise<Object>} Respuesta del servidor
    */
-  registrarAsistenciaPorQR: async (idInscripcion) => {
+  registrarAsistenciaPorDNI: async (dni) => {
     try {
       checkRole(['ADMIN', 'RECEPCIONISTA']);
       
-      console.log('Registrando asistencia para inscripción:', idInscripcion);
+      console.log('Registrando asistencia para DNI:', dni);
       
       const config = getAuthConfig();
       const response = await axios.post(
-        `${ENDPOINTS.REGISTER_ATTENDANCE_QR}?idInscripcion=${idInscripcion}`,
+        `${ENDPOINTS.REGISTER_ATTENDANCE}?dni=${dni}`,
         {},
         config
       );

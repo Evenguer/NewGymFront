@@ -84,8 +84,8 @@ export const ENDPOINTS = {
 
   
   // Asistencia Cliente
-  LIST_CLIENT_ATTENDANCE: `${BASE_URL}/listar`,
-  REGISTER_ATTENDANCE_QR: `${BASE_URL}/asistencia/registrar`,
+  LIST_CLIENT_ATTENDANCE: `${BASE_URL}/asistencia/cliente/listar`,
+  REGISTER_ATTENDANCE: `${BASE_URL}/asistencia/cliente/registrar`, // Actualizado para usar DNI
 
   // Categoría
   SAVE_CATEGORY: `${BASE_URL}/categoria/guardar`,

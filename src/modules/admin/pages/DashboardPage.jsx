@@ -20,8 +20,6 @@ const DashboardPage = () => {
     inscripcionesPorMes: [],
     productosMasVendidos: [],
     ventasPorCategoria: [],
-    asistenciasPorDia: [],
-    clientesPorPlan: [],
     productosBajoStock: [],
     ultimasVentas: [],
     ultimasInscripciones: [],
@@ -48,17 +46,11 @@ const DashboardPage = () => {
       const dashboardData = await dashboardAdminAPI.obtenerDatosDashboard();
       setStats(dashboardData);
       // Cargar estadísticas para gráficos en paralelo
-      const [estadisticasVentas, estadisticasClientes, productosBajoStock, actividadesRecientes, horariosHoy, piezasBajoStockResp, topPiezasMasAlquiladas] = await Promise.all([
+      const [estadisticasVentas, productosBajoStock, actividadesRecientes, horariosHoy] = await Promise.all([
         dashboardAdminAPI.obtenerEstadisticasVentas(),
-        dashboardAdminAPI.obtenerEstadisticasClientes(),
         dashboardAdminAPI.obtenerProductosBajoStock(),
         dashboardAdminAPI.obtenerActividadesRecientes(),
-        dashboardAdminAPI.obtenerHorariosHoy(),
-        dashboardAdminAPI.obtenerPiezasBajoStock(),
-        // Servicio para top 10 piezas más alquiladas del mes actual
-        fetch(ENDPOINTS.REPORTES_ALQUILERES.TOP10_PIEZAS_MES_ACTUAL, {
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        }).then(r => r.json())
+        dashboardAdminAPI.obtenerHorariosHoy()
       ]);
       // ...procesamiento de datos productos y clientes...
       const ventasChartData = estadisticasVentas.ventasPorMes?.map(item => ({
@@ -92,28 +84,14 @@ const DashboardPage = () => {
         value: parseInt(item.cantidadVendida) || 0,
         ingresos: parseFloat(item.totalVentas) || 0
       })) || [];
-      const asistenciasData = estadisticasClientes.asistenciasPorDia?.map(item => ({
-        name: item.diaSemana || 'Sin día',
-        value: parseInt(item.cantidadAsistencias) || 0
-      })) || [];
-      const clientesPlanData = estadisticasClientes.clientesPorPlan?.map(item => ({
-        name: item.nombrePlan || 'Sin plan',
-        value: parseInt(item.cantidadClientes) || 0,
-        porcentaje: parseFloat(item.porcentaje) || 0
-      })) || [];
       setChartData({
         ventasPorMes: combinedChartData,
         productosPorCategoria: categoriasData,
-        asistenciasPorDia: asistenciasData,
-        clientesPorPlan: clientesPlanData,
         productosMasVendidos: productosMasVendidos,
         productosBajoStock: productosBajoStock.productosBajoStock || [],
         ultimasVentas: actividadesRecientes.ultimasVentas || [],
         ultimasInscripciones: actividadesRecientes.ultimasInscripciones || [],
-        empleadosHoy: horariosHoy.empleadosHoy || actividadesRecientes.empleadosHoy || [],
-        // Nuevos datos para análisis de equipamiento
-        piezasBajoStock: piezasBajoStockResp.piezasBajoStock || [],
-        topPiezasMasAlquiladas: Array.isArray(topPiezasMasAlquiladas) ? topPiezasMasAlquiladas : (topPiezasMasAlquiladas?.data || [])
+        empleadosHoy: horariosHoy.empleadosHoy || actividadesRecientes.empleadosHoy || []
       });
       setLoading(false);
       setRefreshing(false);
@@ -274,8 +252,6 @@ const DashboardPage = () => {
         <TabList className="mb-4 overflow-x-auto flex-nowrap">
           <Tab className="whitespace-nowrap">📈 Tendencias de Ventas</Tab>
           <Tab className="whitespace-nowrap">📦 Análisis de Productos</Tab>
-          <Tab className="whitespace-nowrap">🔧 Análisis de Equipamiento</Tab>
-          <Tab className="whitespace-nowrap">👨🏻‍💼 Actividad de Clientes</Tab>
           <Tab className="whitespace-nowrap">⚡ Actividades Recientes</Tab>
         </TabList>
         
@@ -410,133 +386,7 @@ const DashboardPage = () => {
             </div>
           </TabPanel>
 
-          {/* Panel 3: Análisis de Equipamiento */}
-          <TabPanel>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="h-auto min-h-[420px] pb-6 relative">
-                {refreshing && <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10 rounded-lg">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                </div>}
-                <Title>🏆 Piezas Más Alquiladas</Title>
-                <Text>Top piezas por cantidad alquilado</Text>
-                <div className="mt-4 h-72 overflow-hidden">
-                  {chartData.topPiezasMasAlquiladas?.length > 0 ? (
-                    <BarChart
-                      className="h-full w-full"
-                      data={chartData.topPiezasMasAlquiladas.map(p => ({ name: p.pieza, Cantidad: p.unidadesAlquiladas }))}
-                      index="name"
-                      categories={["Cantidad"]}
-                      colors={["indigo"]}
-                      showAnimation
-                      showLegend={false}
-                      valueFormatter={v => `${v} alquileres`}
-                    />
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-gray-500">
-                      <Text>No hay datos de piezas alquiladas</Text>
-                    </div>
-                  )}
-                </div>
-              </Card>
-              <Card className="h-auto min-h-[420px] pb-6 overflow-auto relative">
-                {refreshing && <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10 rounded-lg">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
-                </div>}
-                <Title>📦 Stock de Equipamiento</Title>
-                <Text>Piezas que requieren reabastecimiento</Text>
-                <div className="mt-4 space-y-4 max-h-72 overflow-auto pr-2">
-                  {chartData.piezasBajoStock?.length > 0 ? (
-                    chartData.piezasBajoStock.map((pieza, index) => (
-                      <div key={index} className="mb-4 p-3 border rounded-lg bg-gray-50">
-                        <Flex className="flex-wrap mb-2">
-                          <Text className="truncate max-w-[70%] font-medium">{pieza.nombrePieza}</Text>
-                          <Text className="text-sm text-gray-600">{pieza.categoria}</Text>
-                        </Flex>
-                        <Flex className="flex-wrap mb-2">
-                          <Text className="text-sm">Stock: {pieza.stockActual} / Mínimo: {pieza.stockMinimo}</Text>
-                          <Text className={`text-sm font-medium ${
-                            pieza.porcentajeStock < 20 ? 'text-red-600' : 
-                            pieza.porcentajeStock < 50 ? 'text-amber-600' : 'text-green-600'
-                          }`}>
-                            {pieza.porcentajeStock}% del stock mínimo
-                          </Text>
-                        </Flex>
-                        <ProgressBar 
-                          value={Math.min(pieza.porcentajeStock, 100)} 
-                          color={pieza.porcentajeStock < 20 ? "red" : pieza.porcentajeStock < 50 ? "amber" : "emerald"} 
-                          className="mt-2" 
-                        />
-                      </div>
-                    ))
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-gray-500">
-                      <div className="text-center">
-                        <Package size={48} className="mx-auto mb-2 text-gray-400" />
-                        <Text>¡Excelente! No hay piezas con bajo stock</Text>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </div>
-          </TabPanel>
-          
-          {/* Panel 3: Actividad de Clientes */}
-          <TabPanel>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="h-auto min-h-[420px] pb-6 relative">
-                {refreshing && <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10 rounded-lg">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-                </div>}
-                <Title>📅 Asistencias por Día de la Semana</Title>
-                <Text>Patrón de asistencia de los clientes</Text>
-                <div className="mt-4 h-72">
-                  {chartData.asistenciasPorDia.length > 0 ? (
-                    <BarChart
-                      className="h-full w-full"
-                      data={chartData.asistenciasPorDia}
-                      index="name"
-                      categories={["value"]}
-                      colors={["emerald"]}
-                      showAnimation
-                      showLegend={false}
-                      valueFormatter={(value) => `${value} asistencias`}
-                    />
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-gray-500">
-                      <Text>No hay datos de asistencias disponibles</Text>
-                    </div>
-                  )}
-                </div>
-              </Card>
-              
-              <Card className="h-auto min-h-[420px] pb-6 relative">
-                {refreshing && <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10 rounded-lg">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
-                </div>}
-                <Title>💪 Distribución de Clientes por Plan</Title>
-                <Text>Popularidad de los planes de membresía</Text>
-                <div className="mt-4 h-72 flex items-center justify-center">
-                  {chartData.clientesPorPlan.length > 0 ? (
-                    <DonutChart
-                      className="h-full max-w-full"
-                      data={chartData.clientesPorPlan}
-                      category="value"
-                      index="name"
-                      colors={["indigo", "sky", "violet", "emerald", "amber", "rose"]}
-                      showAnimation
-                      showLabel
-                      valueFormatter={(value) => `${value} clientes`}
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center text-gray-500">
-                      <Text>No hay datos de planes disponibles</Text>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </div>
-          </TabPanel>
+          {/* Panel 3: Actividades Recientes */}
           {/* Panel 4: Actividades Recientes */}
           <TabPanel>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
