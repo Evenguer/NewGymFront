@@ -9,7 +9,6 @@ const DashboardRecepcion = () => {
   // Estados para datos del dashboard
   const [dashboardData, setDashboardData] = useState({
     gananciaDiariaVentasProductos: 0,
-    gananciaDiariaAlquileres: 0,
     gananciaDiariaInscripciones: 0,
     clientesActivos: 0,
     ultimasInscripciones: [],
@@ -39,7 +38,6 @@ const DashboardRecepcion = () => {
         // Mantener datos por defecto en caso de error
         setDashboardData({
           gananciaDiariaVentasProductos: 0,
-          gananciaDiariaAlquileres: 0,
           gananciaDiariaInscripciones: 0,
           clientesActivos: 0,
           ultimasInscripciones: [],
@@ -56,7 +54,6 @@ const DashboardRecepcion = () => {
 
   // Calcular ganancia total del día
   const gananciaTotal = parseFloat(dashboardData.gananciaDiariaVentasProductos || 0) + 
-                       parseFloat(dashboardData.gananciaDiariaAlquileres || 0) + 
                        parseFloat(dashboardData.gananciaDiariaInscripciones || 0);
 
   // Formatear fecha para mostrar
@@ -112,53 +109,35 @@ const DashboardRecepcion = () => {
       </div>
 
       {/* Tarjetas de estadísticas del día actual */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card decoration="top" decorationColor="emerald">
-          <Flex justifyContent="start" className="space-x-4">
-            <div className="p-2 bg-emerald-100 rounded-md">
-              <DollarSign size={20} className="text-emerald-500" />
+          <div className="flex flex-col items-center text-center">
+            <div className="p-3 bg-emerald-100 rounded-md mb-3">
+              <DollarSign size={24} className="text-emerald-500" />
             </div>
-            <div>
-              <Text>Ventas de productos (hoy)</Text>
-              <Metric>S/ {parseFloat(dashboardData.gananciaDiariaVentasProductos || 0).toFixed(2)}</Metric>
-            </div>
-          </Flex>
-        </Card>
-        
-        <Card decoration="top" decorationColor="blue">
-          <Flex justifyContent="start" className="space-x-4">
-            <div className="p-2 bg-blue-100 rounded-md">
-              <Home size={20} className="text-blue-500" />
-            </div>
-            <div>
-              <Text>Alquileres (hoy)</Text>
-              <Metric>S/ {parseFloat(dashboardData.gananciaDiariaAlquileres || 0).toFixed(2)}</Metric>
-            </div>
-          </Flex>
+            <Text className="mb-2">Ventas de productos (hoy)</Text>
+            <Metric>S/ {parseFloat(dashboardData.gananciaDiariaVentasProductos || 0).toFixed(2)}</Metric>
+          </div>
         </Card>
         
         <Card decoration="top" decorationColor="purple">
-          <Flex justifyContent="start" className="space-x-4">
-            <div className="p-2 bg-purple-100 rounded-md">
-              <UserCheck size={20} className="text-purple-500" />
+          <div className="flex flex-col items-center text-center">
+            <div className="p-3 bg-purple-100 rounded-md mb-3">
+              <UserCheck size={24} className="text-purple-500" />
             </div>
-            <div>
-              <Text>Inscripciones (hoy)</Text>
-              <Metric>S/ {parseFloat(dashboardData.gananciaDiariaInscripciones || 0).toFixed(2)}</Metric>
-            </div>
-          </Flex>
+            <Text className="mb-2">Inscripciones (hoy)</Text>
+            <Metric>S/ {parseFloat(dashboardData.gananciaDiariaInscripciones || 0).toFixed(2)}</Metric>
+          </div>
         </Card>
         
         <Card decoration="top" decorationColor="indigo">
-          <Flex justifyContent="start" className="space-x-4">
-            <div className="p-2 bg-indigo-100 rounded-md">
-              <Users size={20} className="text-indigo-500" />
+          <div className="flex flex-col items-center text-center">
+            <div className="p-3 bg-indigo-100 rounded-md mb-3">
+              <Users size={24} className="text-indigo-500" />
             </div>
-            <div>
-              <Text>Clientes activos</Text>
-              <Metric>{dashboardData.clientesActivos}</Metric>
-            </div>
-          </Flex>
+            <Text className="mb-2">Clientes activos</Text>
+            <Metric>{dashboardData.clientesActivos}</Metric>
+          </div>
         </Card>
       </div>
 

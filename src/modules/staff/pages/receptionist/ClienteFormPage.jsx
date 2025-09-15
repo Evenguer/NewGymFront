@@ -222,7 +222,7 @@ const ClienteFormPage = () => {
       case 'celular':
         return 'Ingrese un número celular válido de 9 dígitos comenzando con 9.';
       case 'fechaNacimiento':
-        return 'Debe ser mayor de 18 años para registrarse.';
+        return 'Debe ser mayor de 10 años para registrarse.';
       case 'nombreUsuario':
         return 'Use entre 4 y 20 caracteres. Solo letras, números y guiones bajos.';
       default:

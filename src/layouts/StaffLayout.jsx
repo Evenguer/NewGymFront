@@ -53,15 +53,7 @@ const StaffLayout = () => {
         { title: 'Historial', path: '/staff/listas' },
       ],
     },
-    {
-      title: 'Alquileres',
-      icon: <Calendar size={20} />,
-      submenu: true,
-      submenuItems: [
-        { title: 'Nuevo Alquiler', path: '/staff/alquileres/nuevo' },
-        { title: 'Historial', path: '/staff/alquileres/historial' },
-      ],
-    },
+
     {
       title: 'Inscripciones',
       icon: <CheckSquare size={20} />,
@@ -97,7 +89,6 @@ const StaffLayout = () => {
       submenu: true,
       submenuItems: [
         { title: 'Categorías', path: '/staff/categorias' },
-        { title: 'Especialidades', path: '/staff/especialidades' },
         { title: 'Planes', path: '/staff/planes' },
       ],
     },

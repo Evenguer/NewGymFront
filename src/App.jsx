@@ -77,7 +77,6 @@ import AsistenciaEmpleadoPage from './modules/admin/pages/AsistenciaEmpleadoPage
 import ListaAsistenciaPage from './modules/admin/pages/ListaAsistenciaPage';
 import EspecialidadesPage from './modules/admin/pages/EspecialidadesPage';
 import ReportesVentasFinanzas from './modules/admin/pages/reportes/VentasFinanzasReportes';
-import AlquileresFinanzasReportes from './modules/admin/pages/reportes/AlquileresFinanzasReportes';
 
 // Placeholder para páginas pendientes de implementar
 const PlaceholderPage = () => (
@@ -114,9 +113,6 @@ import ProductoPage from './modules/staff/pages/receptionist/ProductoPage';
 import CategoriaPage from './modules/staff/pages/receptionist/CategoriaPage';
 import VentaPage from './modules/staff/pages/receptionist/VentaPage';
 import ListaPage from './modules/staff/pages/receptionist/ListaPage';
-import AlquilerPage from './modules/staff/pages/receptionist/AlquilerPage';
-import ListaAlquileresPage from './modules/staff/pages/receptionist/ListaAlquileresPage';
-import  EspecialidadListaPage from './modules/staff/pages/receptionist/EspecialidadListaPage';
 import PlanesListaPage from './modules/staff/pages/receptionist/PlanesListaPage';
 import ClienteFormPage from './modules/staff/pages/receptionist/ClienteFormPage';
 import MaquinariaPage from './modules/staff/pages/receptionist/MaquinariaPage';
@@ -182,7 +178,6 @@ function App() {
               
               {/* Reportes y Análisis */}
               <Route path="reportes/ventas-finanzas" element={<ReportesVentasFinanzas />} />
-              <Route path="reportes/alquileres" element={<AlquileresFinanzasReportes />} />
               <Route path="reportes/asistencia-participacion" element={<PlaceholderPage />} />
               <Route path="reportes/clientes" element={<PlaceholderPage />} />
               <Route path="reportes/inventario" element={<PlaceholderPage />} />
@@ -200,7 +195,6 @@ function App() {
               {/* Dashboard: muestra el de recepcionista o entrenador según el rol */}
               <Route path="dashboard" element={<StaffDashboardSwitch />} />
               <Route path="categorias" element={<CategoriaPage />} />
-              <Route path="especialidades" element={<EspecialidadListaPage />} />
               <Route path="planes" element={<PlanesListaPage />} />
               <Route path="empleados" element={<EmployeesListPage />} />
               <Route path="clientes" element={<ClientesListPage />} />
@@ -210,8 +204,6 @@ function App() {
               <Route path="ventas" element={<VentaPage/>} />
               <Route path="listas" element={<ListaPage />} />
               <Route path="inscripciones" element={<InscripcionPage />} />
-              <Route path="alquileres/nuevo" element={<AlquilerPage />} />
-              <Route path="alquileres/historial" element={<ListaAlquileresPage />} />
               <Route path="clientes" element={<ClientesStaffPage />} />
               <Route path="cliente/nuevo" element={<ClienteFormPage />} />
               <Route path="inscripciones/nueva" element={<NuevaInscripcionPage />} />

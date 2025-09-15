@@ -882,7 +882,17 @@ return (
     {pasoActual === 3 && (
       <Card>
         <div className="space-y-6">
-          <Title>Procesar Pago</Title>
+          <div className="flex justify-between items-center mb-4">
+            <Button
+              variant="light"
+              icon={ArrowLeft}
+              onClick={() => setPasoActual(2)}
+              className="hover:bg-gray-100"
+            >
+              Volver a Productos
+            </Button>
+            <Title>Procesar Pago</Title>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Text className="mb-2">Método de Pago</Text>

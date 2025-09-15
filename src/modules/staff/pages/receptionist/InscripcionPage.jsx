@@ -45,11 +45,10 @@ const InscripcionPage = () => {
   const [planSeleccionado, setPlanSeleccionado] = useState(null);
   const [instructorSeleccionado, setInstructorSeleccionado] = useState(null);
   const [horariosInstructor, setHorariosInstructor] = useState([]);
-  // const [horarioSeleccionado, setHorarioSeleccionado] = useState(null);
+  const [horarioSeleccionado, setHorarioSeleccionado] = useState(null);
   
   // Estados para filtros de planes
   const [busquedaPlan, setBusquedaPlan] = useState('');
-  const [filtroTipoPlan, setFiltroTipoPlan] = useState('TODOS');
   
   // Datos de formulario
   const [formData, setFormData] = useState({
@@ -68,13 +67,14 @@ const InscripcionPage = () => {
   // Estados de control
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState({});
-  // const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [inscripcionCreada, setInscripcionCreada] = useState(null);
-  const [pasoActual, setPasoActual] = useState(1); // 1: Cliente, 2: Plan, 3: Instructor, 4: Horario, 5: Confirmación, 6: Pago, 7: Finalizado
+  const [pasoActual, setPasoActual] = useState(1); // 1: Cliente, 2: Plan, 3: Confirmación y Pago, 4: Completado
   
   // Estados de pago
   const [montoPagado, setMontoPagado] = useState('');
   const [metodoPago, setMetodoPago] = useState('EFECTIVO');
+  const [mostrarPago, setMostrarPago] = useState(false);
   // Efecto para auto-completar y deshabilitar montoPagado según método de pago
   useEffect(() => {
     if (["TARJETA", "BILLETERAS"].includes(metodoPago)) {
@@ -180,16 +180,8 @@ const InscripcionPage = () => {
           monto: plan.precio
         }));
 
-        // Si es plan PREMIUM, cargar instructores disponibles
-        if (plan.tipoPlan === 'PREMIUM') {
-          const instructores = await inscripcionAPI.obtenerInstructoresDisponibles(plan.id);
-          console.log('Instructores obtenidos del API:', instructores);
-          setInstructoresDisponibles(instructores);
-          setPasoActual(3); // Paso de selección de instructor
-        } else {
-          // Si es ESTANDAR, saltar a confirmación
-          setPasoActual(5); // Paso de confirmación
-        }
+        // Ir directamente a confirmación y pago para cualquier tipo de plan
+        setPasoActual(3); // Paso de confirmación y pago
         
         showSnackbar('Plan seleccionado exitosamente', 'success');
       }
@@ -227,23 +219,27 @@ const InscripcionPage = () => {
   };
 
   // Seleccionar horario
-  // (Función eliminada porque no se utiliza)
+  const seleccionarHorario = (horario) => {
+    setHorarioSeleccionado(horario);
+    setPasoActual(5); // Paso de confirmación
+    showSnackbar('Horario seleccionado exitosamente', 'success');
+  };
+
+  // Función para formatear fecha como YYYY-MM-DD
+  const formatDateLocal = (date) => {
+    if (!(date instanceof Date)) return date;
+    // Forzar hora local a 00:00:00 para evitar desfase
+    const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+    const day = String(localDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   // Registrar inscripción
   const registrarInscripcion = async () => {
     try {
       setLoading(true);
-      
-      // Formatear fecha de inicio como YYYY-MM-DD en local, forzando hora 00:00:00
-      const formatDateLocal = (date) => {
-        if (!(date instanceof Date)) return date;
-        // Forzar hora local a 00:00:00 para evitar desfase
-        const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
-        const year = localDate.getFullYear();
-        const month = String(localDate.getMonth() + 1).padStart(2, '0');
-        const day = String(localDate.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
 
       const inscripcionData = {
         idCliente: formData.idCliente,
@@ -294,7 +290,7 @@ const InscripcionPage = () => {
       };
 
       await inscripcionAPI.registrarPagoInscripcion(pagoData);
-      setPasoActual(7); // Paso final
+      setPasoActual(4); // Paso completado
       
       showSnackbar('Pago registrado exitosamente', 'success');
     } catch (error) {
@@ -316,11 +312,9 @@ const InscripcionPage = () => {
 };
 
   // Función para filtrar planes
-  const planesFiltrados = planes.filter(plan => {
-    const coincideBusqueda = plan.nombre.toLowerCase().includes(busquedaPlan.toLowerCase());
-    const coincideTipo = filtroTipoPlan === 'TODOS' || plan.tipoPlan === filtroTipoPlan;
-    return coincideBusqueda && coincideTipo;
-  });
+  const planesFiltrados = planes.filter(plan => 
+    plan.nombre.toLowerCase().includes(busquedaPlan.toLowerCase())
+  );
 
   // Función para formatear duración correctamente (singular/plural)
   const formatearDuracion = (duracion) => {
@@ -337,7 +331,7 @@ const InscripcionPage = () => {
     setPlanSeleccionado(null);
     setInstructorSeleccionado(null);
     setHorariosInstructor([]);
-    // setHorarioSeleccionado(null);
+    setHorarioSeleccionado(null);
     setBusquedaPlan('');
     setFiltroTipoPlan('TODOS');
     setFormData({
@@ -356,20 +350,12 @@ const InscripcionPage = () => {
 
   const volver = () => {
     if (pasoActual > 1) {
-      // Para planes ESTÁNDAR, manejar los saltos correctamente
-      if (planSeleccionado && planSeleccionado.tipoPlan === 'ESTANDAR') {
-        if (pasoActual === 5) { // Desde confirmación volver a plan
-          setPasoActual(2);
-        } else if (pasoActual === 6) { // Desde pago volver a confirmación
-          setPasoActual(5);
-        } else if (pasoActual === 7) { // Desde completado volver a pago
-          setPasoActual(6);
-        } else {
-          setPasoActual(pasoActual - 1);
-        }
-      } else {
-        // Para planes PREMIUM o cuando no hay plan seleccionado, comportamiento normal
-        setPasoActual(pasoActual - 1);
+      if (pasoActual === 4) { // Desde completado volver a confirmación y pago
+        setPasoActual(3);
+      } else if (pasoActual === 3) { // Desde confirmación y pago volver a plan
+        setPasoActual(2);
+      } else if (pasoActual === 2) { // Desde plan volver a cliente
+        setPasoActual(1);
       }
     }
   };
@@ -379,11 +365,8 @@ const InscripcionPage = () => {
     const pasos = [
       { numero: 1, titulo: 'Cliente', icono: User },
       { numero: 2, titulo: 'Plan', icono: Calendar },
-      { numero: 3, titulo: 'Instructor', icono: User, condicional: true },
-      { numero: 4, titulo: 'Horario', icono: Clock, condicional: true },
-      { numero: 5, titulo: 'Confirmación', icono: CheckCircle },
-      { numero: 6, titulo: 'Pago', icono: CreditCard },
-      { numero: 7, titulo: 'Completado', icono: CheckCircle }
+      { numero: 3, titulo: 'Confirmación y Pago', icono: CreditCard },
+      { numero: 4, titulo: 'Completado', icono: CheckCircle }
     ];
 
     // Filtrar pasos según el tipo de plan
@@ -609,18 +592,6 @@ const InscripcionPage = () => {
                   className="bg-white"
                 />
               </div>
-              <div>
-                <Text className="mb-2 font-medium">Filtrar por tipo</Text>
-                <SearchSelect
-                  value={filtroTipoPlan}
-                  onValueChange={setFiltroTipoPlan}
-                  className="bg-white"
-                >
-                  <SearchSelectItem value="TODOS">Todos los planes</SearchSelectItem>
-                  <SearchSelectItem value="ESTANDAR">Plan Estándar</SearchSelectItem>
-                  <SearchSelectItem value="PREMIUM">Plan Premium</SearchSelectItem>
-                </SearchSelect>
-              </div>
             </div>
             
             {/* Contador de resultados */}
@@ -628,7 +599,6 @@ const InscripcionPage = () => {
               <Text className="text-sm text-gray-600">
                 Mostrando {planesFiltrados.length} de {planes.length} planes
                 {busquedaPlan && ` que contienen "${busquedaPlan}"`}
-                {filtroTipoPlan !== 'TODOS' && ` del tipo ${filtroTipoPlan}`}
               </Text>
             </div>
           </div>
@@ -768,7 +738,7 @@ const InscripcionPage = () => {
               <div className="flex justify-center mt-6">
                 <Button 
                   onClick={() => {
-                    // setHorarioSeleccionado(horariosInstructor[0]); // Seleccionar el primer horario por defecto
+                    setHorarioSeleccionado(horariosInstructor[0]); // Seleccionar el primer horario por defecto
                     setPasoActual(5); // Ir al paso de confirmación
                     showSnackbar('Bloque de horarios seleccionado exitosamente', 'success');
                   }}
@@ -789,29 +759,28 @@ const InscripcionPage = () => {
         </Card>
       )}
 
-      {/* Paso 5: Confirmación */}
-      {pasoActual === 5 && (
+      {/* Paso 3: Confirmación y Pago */}
+      {pasoActual === 3 && (
         <Card className="mb-6 shadow-sm">
           <Title className="mb-4 flex items-center">
-            <CheckCircle size={20} className="mr-2 text-red-600" />
-            <span>Confirmar Inscripción</span>
+            <CreditCard size={20} className="mr-2 text-red-600" />
+            <span>Confirmar y Pagar Inscripción</span>
           </Title>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Resumen de la Inscripción */}
             <div className="p-4 bg-gray-50 rounded-lg">
               <h3 className="font-semibold mb-2">Resumen de la Inscripción</h3>
               <div className="space-y-2 text-sm">
                 <p><strong>Cliente:</strong> {clienteEncontrado?.nombreCompleto}</p>
                 <p><strong>Plan:</strong> {planSeleccionado?.nombre} ({planSeleccionado?.tipoPlan})</p>
                 <p><strong>Duración:</strong> {formatearDuracion(planSeleccionado?.duracion)}</p>
-                {instructorSeleccionado && (
-                  <p><strong>Instructor:</strong> {instructorSeleccionado.nombreCompleto}</p>
-                )}
                 <p><strong>Fecha de inicio:</strong> {formData.fechaInicio instanceof Date ? formData.fechaInicio.toLocaleDateString() : formData.fechaInicio}</p>
                 <p className="text-lg font-semibold text-red-600"><strong>Monto total: S/ {formData.monto}</strong></p>
               </div>
             </div>
             
+            {/* Fecha de inicio */}
             <div className="p-4 bg-gray-50 rounded-lg">
               <Text className="mb-2 font-medium">Fecha de inicio (opcional - modificar si es necesario)</Text>
               <DatePicker
@@ -824,100 +793,109 @@ const InscripcionPage = () => {
               />
             </div>
             
+            {/* Sección de pago */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <Text className="mb-2 font-medium">Método de pago</Text>
+                  <SearchSelect
+                    value={metodoPago}
+                    onValueChange={setMetodoPago}
+                    disabled={loading}
+                    icon={CreditCard}
+                    className="bg-white"
+                  >
+                    <SearchSelectItem value="EFECTIVO">Efectivo</SearchSelectItem>
+                    <SearchSelectItem value="TARJETA">Tarjeta</SearchSelectItem>
+                    <SearchSelectItem value="BILLETERAS">Billeteras Digitales</SearchSelectItem>
+                  </SearchSelect>
+                </div>
+                
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <Text className="mb-2 font-medium">Monto recibido (S/)</Text>
+                  <TextInput
+                    value={montoPagado}
+                    onChange={(e) => {
+                      if (!["TARJETA", "BILLETERAS"].includes(metodoPago)) {
+                        setMontoPagado(e.target.value);
+                      }
+                    }}
+                    disabled={loading || ["TARJETA", "BILLETERAS"].includes(metodoPago)}
+                    type="number"
+                    step="0.01"
+                    min={formData.monto}
+                    placeholder={`Mínimo: S/ ${formData.monto.toFixed(2)}`}
+                    className="bg-white"
+                    icon={DollarSign}
+                  />
+                  {formErrors.pago && (
+                    <Text className="text-red-600 text-xs mt-1">{formErrors.pago}</Text>
+                  )}
+                </div>
+              </div>
+              
+              {montoPagado && parseFloat(montoPagado) > formData.monto && (
+                <div className="p-2 bg-green-50 rounded border border-green-200">
+                  <Text className="text-green-600 font-medium">
+                    Vuelto: S/ {(parseFloat(montoPagado) - formData.monto).toFixed(2)}
+                  </Text>
+                </div>
+              )}
+            </div>
+
+            {/* Botón de confirmación y pago */}
             <Button 
-              onClick={registrarInscripcion}
-              disabled={loading}
+              onClick={async () => {
+                try {
+                  setLoading(true);
+                  
+                  // Primero registrar la inscripción
+                  const inscripcionData = {
+                    idCliente: formData.idCliente,
+                    idPlan: formData.idPlan,
+                    fechaInicio: formatDateLocal(formData.fechaInicio),
+                    monto: formData.monto
+                  };
+                  
+                  const resultado = await inscripcionAPI.registrarInscripcion(inscripcionData);
+                  setInscripcionCreada(resultado);
+                  
+                  // Luego registrar el pago
+                  const pagoData = {
+                    inscripcion: { idInscripcion: resultado.idInscripcion },
+                    montoPagado: parseFloat(montoPagado),
+                    metodoPago: metodoPago
+                  };
+                  
+                  await inscripcionAPI.registrarPagoInscripcion(pagoData);
+                  setPasoActual(4); // Ir al paso completado
+                  
+                  showSnackbar('¡Inscripción completada exitosamente!', 'success');
+                } catch (error) {
+                  console.error('Error:', error);
+                  if (error.response?.data?.error === 'El cliente ya tiene una inscripción activa') {
+                    showSnackbar('Este cliente ya tiene una inscripción activa', 'error');
+                  } else {
+                    showSnackbar(error.message || 'Error al procesar la inscripción', 'error');
+                  }
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading || !montoPagado || parseFloat(montoPagado) < formData.monto}
               loading={loading}
               icon={CheckCircle}
               className="w-full bg-red-600 hover:bg-red-700 text-white"
               size="lg"
             >
-              Confirmar y Registrar Inscripción
+              Confirmar y Pagar
             </Button>
           </div>
         </Card>
       )}
 
-      {/* Paso 6: Pago */}
-      {pasoActual === 6 && inscripcionCreada && (
-        <Card className="mb-6 shadow-sm">
-          <Title className="mb-4 flex items-center">
-            <CreditCard size={20} className="mr-2 text-red-600" />
-            <span>Registrar Pago</span>
-          </Title>
-          
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded">
-            <Text className="text-green-700">
-              <CheckCircle className="inline-block mr-2" size={16} />
-              Inscripción registrada exitosamente. ID: {inscripcionCreada.idInscripcion}
-            </Text>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <Text className="mb-2 font-medium">Método de pago</Text>
-              <SearchSelect
-                value={metodoPago}
-                onValueChange={setMetodoPago}
-                disabled={loading}
-                icon={CreditCard}
-                className="bg-white"
-              >
-                <SearchSelectItem value="EFECTIVO">Efectivo</SearchSelectItem>
-                <SearchSelectItem value="TARJETA">Tarjeta</SearchSelectItem>
-                <SearchSelectItem value="BILLETERAS">Billeteras Digitales</SearchSelectItem>
-              </SearchSelect>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <Text className="mb-2 font-medium">Monto recibido (S/)</Text>
-              <TextInput
-                value={montoPagado}
-                onChange={(e) => {
-                  if (!["TARJETA", "BILLETERAS"].includes(metodoPago)) {
-                    setMontoPagado(e.target.value);
-                  }
-                }}
-                disabled={loading || ["TARJETA", "BILLETERAS"].includes(metodoPago)}
-                type="number"
-                step="0.01"
-                min={formData.monto}
-                placeholder={`Mínimo: S/ ${formData.monto.toFixed(2)}`}
-                className="bg-white"
-                icon={DollarSign}
-              />
-              {formErrors.pago && (
-                <Text className="text-red-600 text-xs mt-1">{formErrors.pago}</Text>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <div>
-              <Text className="text-lg font-semibold text-blue-800">
-                Total a pagar: S/ {formData.monto.toFixed(2)}
-              </Text>
-              {montoPagado && parseFloat(montoPagado) > formData.monto && (
-                <Text className="text-green-600 font-medium">
-                  Vuelto: S/ {(parseFloat(montoPagado) - formData.monto).toFixed(2)}
-                </Text>
-              )}
-            </div>
-            <Button 
-              onClick={registrarPago} 
-              disabled={loading || !montoPagado || parseFloat(montoPagado) < formData.monto}
-              loading={loading}
-              icon={CheckCircle}
-              className="bg-red-600 hover:bg-red-700 text-white"
-              size="lg"
-            >
-              Finalizar Pago
-            </Button>
-          </div>
-        </Card>
-      )}
-
-      {/* Paso 7: Completado */}
-      {pasoActual === 7 && (
+      {/* Paso 4: Completado */}
+      {pasoActual === 4 && (
         <Card className="mb-6 shadow-sm">
           <div className="text-center py-8">
             <CheckCircle size={64} className="mx-auto mb-4 text-green-500" />

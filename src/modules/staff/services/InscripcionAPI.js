@@ -48,13 +48,24 @@ export const inscripcionAPI = {
       return response.data;
     } catch (error) {
       console.error('Error al registrar inscripción:', error);
-      if (error.response?.status === 400) {
-        throw new Error(error.response.data || 'Datos de inscripción inválidos');
+      
+      // Verificar si el error es por inscripción activa existente
+      if (error.response?.status === 400 && 
+          (error.response?.data?.message?.includes('inscripción activa') || 
+           error.response?.data?.error?.includes('inscripción activa'))) {
+        throw new Error('Este cliente ya cuenta con una inscripción activa');
       }
+      
+      // Otros errores HTTP 400
+      if (error.response?.status === 400) {
+        throw new Error(error.response?.data?.message || 'Datos de inscripción inválidos');
+      }
+      
       if (error.response?.status === 403) {
         throw new Error('No tienes permiso para registrar inscripciones');
       }
-      throw new Error(error.response?.data?.message || error.message || 'Error al registrar la inscripción');
+      
+      throw new Error(error.response?.data?.message || 'Error al registrar la inscripción');
     }
   },
 
