@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { Card, Title, TextInput, Button } from '@tremor/react';
-import { register, checkExistingUser } from '../../../../shared/services/authAPI';
+import { register } from '../../../../shared/services/authAPI';
 import { toast, Toaster } from 'react-hot-toast';
 import {
   isValidDNI,
   isValidPhone,
-  isStrongPassword,
   isValidEmail,
-  isValidUsername,
   isValidName,
   ERROR_MESSAGES
 } from '../../../../shared/utils/validations';
@@ -15,8 +13,6 @@ import { isOver18, getMaxBirthDate } from '../../../../shared/utils/dateUtils';
 import './modal-styles.css';
 
 const initialFormData = {
-  nombreUsuario: '',
-  contrasena: '',
   nombre: '',
   apellidos: '',
   dni: '',
@@ -77,19 +73,6 @@ const ClienteFormPage = () => {
     e.preventDefault();
     const errors = {};
 
-    // Validaciones básicas usando las funciones de validación
-    if (!formData.nombreUsuario) {
-      errors.nombreUsuario = 'El nombre de usuario es requerido';
-    } else if (!isValidUsername(formData.nombreUsuario)) {
-      errors.nombreUsuario = ERROR_MESSAGES.username;
-    }
-
-    if (!formData.contrasena) {
-      errors.contrasena = 'La contraseña es requerida';
-    } else if (!isStrongPassword(formData.contrasena)) {
-      errors.contrasena = ERROR_MESSAGES.password;
-    }
-
     if (!formData.nombre) {
       errors.nombre = 'El nombre es requerido';
     } else if (!isValidName(formData.nombre)) {
@@ -135,20 +118,14 @@ const ClienteFormPage = () => {
 
     setLoading(true);
     try {
-      // Verificar si el usuario ya existe
-      const checkResult = await checkExistingUser(formData.dni, formData.correo);
-      if (checkResult.exists) {
-        toast.error(checkResult.message, {
-          duration: 4000,
-          position: 'top-right',
-          style: { background: '#EF4444', color: '#fff' },
-        });
-        setLoading(false);
-        return;
-      }
 
-      // Registrar el cliente con el token incluido automáticamente por la función register
-      const data = await register({ ...formData, rol: 'CLIENTE' });
+      // Registrar el cliente sin credenciales
+      const data = await register({ 
+        ...formData, 
+        rol: 'CLIENTE',
+        nombreUsuario: null,  // Explícitamente enviar null para asegurar que no se creen credenciales
+        contrasena: null
+      });
       if (!data) throw new Error('Error al crear el cliente');
       
       // Limpiar formulario y mostrar éxito
@@ -241,37 +218,7 @@ const ClienteFormPage = () => {
       </div>
       <Card className="w-full p-8 shadow-lg">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Nombre de Usuario</label>
-              <TextInput
-                name="nombreUsuario"
-                value={formData.nombreUsuario}
-                onChange={handleInputChange}
-                error={formErrors.nombreUsuario}
-                placeholder="Ingrese nombre de usuario"
-              />
-              {formErrors.nombreUsuario && (
-                <p className="text-red-500 text-xs mt-1">{formErrors.nombreUsuario}</p>
-              )}
-              <p className="text-gray-500 text-xs mt-1">{getHelpMessage('nombreUsuario')}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Contraseña</label>
-              <TextInput
-                type="password"
-                name="contrasena"
-                value={formData.contrasena}
-                onChange={handleInputChange}
-                error={formErrors.contrasena}
-                placeholder="Ingrese contraseña"
-              />
-              {formErrors.contrasena && (
-                <p className="text-red-500 text-xs mt-1">{formErrors.contrasena}</p>
-              )}
-              <p className="text-gray-500 text-xs mt-1">{getHelpMessage('contrasena')}</p>
-            </div>
-          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Nombre</label>

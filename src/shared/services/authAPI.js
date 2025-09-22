@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ENDPOINTS, BASE_URL } from './endpoints';
 
-// URL base para todas las peticiones
+// URL base para to    // No necesitamos verificar la existencia previa ya que el backend manejará las restricciones de uniquenessas peticiones
 const API_URL = 'http://localhost:8080'; // Definimos la URL base completa sin /api
 // BASE_URL contiene '/api' pero necesitamos la base sin /api para algunas llamadas directas
 
@@ -98,12 +98,6 @@ export const register = async (userData) => {
       rol: userData.rol,
       nombreUsuario: userData.nombreUsuario
     });
-
-    // Verificar si el usuario ya existe antes de intentar registrarlo
-    const userExists = await checkExistingUser(userData.dni, userData.correo);
-    if (userExists.exists) {
-      throw new Error(userExists.message);
-    }
 
     // Configurar los headers con el token
     const headers = {
