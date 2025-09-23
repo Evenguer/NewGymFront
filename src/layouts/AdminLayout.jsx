@@ -89,7 +89,6 @@ const AdminLayout = () => {
       submenu: true,
       submenuItems: [
         { title: 'Categorías', path: '/admin/categorias' },
-        { title: 'Especialidades', path: '/admin/especialidades' },
         { title: 'Planes y Membresías', path: '/admin/planes' },
       ],
     },
@@ -108,7 +107,6 @@ const AdminLayout = () => {
       submenu: true,
       submenuItems: [
         { title: 'Reportes de Ventas y Finanzas', path: '/admin/reportes/ventas-finanzas' },
-        { title: 'Reportes de Alquileres', path: '/admin/reportes/alquileres' },
 
       ],
     },
