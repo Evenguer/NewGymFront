@@ -107,9 +107,7 @@ const AdminLayout = () => {
       icon: <BarChart2 size={20} />,
       submenu: true,
       submenuItems: [
-        { title: 'Reportes de Ventas y Finanzas', path: '/admin/reportes/ventas-finanzas' },
-        { title: 'Reportes de Alquileres', path: '/admin/reportes/alquileres' },
-
+        { title: 'Reportes de Ventas y Finanzas', path: '/admin/reportes/ventas-finanzas' }
       ],
     },
   ];

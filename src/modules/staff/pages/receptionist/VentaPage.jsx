@@ -117,45 +117,8 @@ const [pasoActual, setPasoActual] = useState(1); // 1: datos, 2: detalles, 3: pa
     if (isAuthenticated) {
       fetchData();
     }
-  }, [isAuthenticated]);  const handleInputChange = (field, value) => {
-    console.log(`Cambiando ${field} a:`, value);
-    
-    // Si el valor es null o undefined, usar cadena vacía
-    const safeValue = value || '';
-    
-    // Validar el formato del ID
-    if (field === 'empleadoId' && !safeValue.startsWith('emp-')) {
-      const formattedValue = `emp-${safeValue}`;
-      setFormData(prev => ({
-        ...prev,
-        [field]: formattedValue
-      }));
-    } else if (field === 'clienteId' && !safeValue.startsWith('cli-')) {
-      const formattedValue = `cli-${safeValue}`;
-      setFormData(prev => ({
-        ...prev,
-        [field]: formattedValue
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: safeValue
-      }));
-    }
-
-    // Limpiar error del campo cuando cambia
-    if (formErrors[field]) {
-      setFormErrors(prev => ({
-        ...prev,
-        [field]: null
-      }));
-    }
-    
-    // Limpiar mensaje de éxito si existe
-    // (Eliminado: setSuccess, no está definido ni utilizado)
-
-    console.log('Estado actualizado:', formData);
-  };  const validateForm = () => {
+  }, [isAuthenticated]);
+  const validateForm = () => {
     const errors = {};
     if (!clienteEncontrado) {
       errors.cliente = 'Debe buscar y seleccionar un cliente por DNI';

@@ -102,7 +102,7 @@ const HorarioModal = ({ isOpen, onClose, horario, empleados, onSuccess, isLoadin
         const maxHora = 23;
         const getHour = (str) => {
             if (!str) return null;
-            const [h, m] = str.split(':');
+            const [h] = str.split(':');
             return parseInt(h, 10);
         };
         const inicioHora = getHour(formData.horaInicio);

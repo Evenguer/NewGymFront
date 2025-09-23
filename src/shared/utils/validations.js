@@ -39,7 +39,38 @@ export const isValidUsername = (username) => {
     return usernameRegex.test(username);
 };
 
-// Validación de edad mínima (18 años)
+// Validación de edad mínima según el rol
+export const isValidAgeForRole = (birthDate, role) => {
+    if (!birthDate) return false;
+    
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--;
+    }
+    
+    // Definir edad mínima según el rol
+    const minAge = getMinimumAgeByRole(role);
+    return age >= minAge;
+};
+
+// Función para obtener la edad mínima según el rol
+export const getMinimumAgeByRole = (role) => {
+    switch (role?.toUpperCase()) {
+        case 'CLIENTE':
+            return 11;
+        case 'ENTRENADOR':
+        case 'RECEPCIONISTA':
+            return 18;
+        default:
+            return 18; // Por defecto 18 años
+    }
+};
+
+// Validación de edad mínima (18 años) - mantenida por compatibilidad
 export const isOver18 = (birthDate) => {
     const today = new Date();
     const birth = new Date(birthDate);
@@ -69,6 +100,21 @@ export const isValidSalary = (salary) => {
 export const isValidMaxQuota = (quota) => {
     const quotaNumber = parseInt(quota);
     return Number.isInteger(quotaNumber) && quotaNumber > 0 && quotaNumber <= 100;
+};
+
+// Función para obtener el mensaje de error de edad según el rol
+export const getAgeErrorMessage = (role) => {
+    const minAge = getMinimumAgeByRole(role);
+    switch (role?.toUpperCase()) {
+        case 'CLIENTE':
+            return `Debe tener al menos ${minAge} años para registrarse como cliente.`;
+        case 'ENTRENADOR':
+            return `Debe tener al menos ${minAge} años para registrarse como entrenador.`;
+        case 'RECEPCIONISTA':
+            return `Debe tener al menos ${minAge} años para registrarse como recepcionista.`;
+        default:
+            return `Debe tener al menos ${minAge} años para registrarse.`;
+    }
 };
 
 // Mensajes de error personalizados

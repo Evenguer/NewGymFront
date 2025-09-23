@@ -238,58 +238,6 @@ const ListaInscripcionesPage = () => {
     }
   };
 
-  const convertirNumeroALetras = (numero) => {
-    const unidades = ['', 'UNO', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
-    const decenas = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
-    const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
-    
-    if (numero === 0) return 'CERO';
-    
-    let numeroStr = Math.floor(numero).toString();
-    let decimales = Math.round((numero - Math.floor(numero)) * 100);
-    let resultado = '';
-    
-    // Procesar parte entera
-    if (numeroStr.length === 1) {
-      resultado = unidades[parseInt(numeroStr)];
-    } else if (numeroStr.length === 2) {
-      let dec = parseInt(numeroStr[0]);
-      let uni = parseInt(numeroStr[1]);
-      
-      if (dec === 1 && uni > 0) {
-        resultado = especiales[uni];
-      } else {
-        resultado = decenas[dec];
-        if (uni > 0) {
-          resultado += ' Y ' + unidades[uni];
-        }
-      }
-    } else if (numeroStr.length === 3) {
-      let centena = parseInt(numeroStr[0]);
-      let resto = parseInt(numeroStr.slice(1));
-      
-      if (centena === 1) {
-        resultado = resto === 0 ? 'CIEN' : 'CIENTO';
-      } else if (centena === 5) {
-        resultado = 'QUINIENTOS';
-      } else if (centena === 9) {
-        resultado = 'NOVECIENTOS';
-      } else {
-        resultado = unidades[centena] + 'CIENTOS';
-      }
-      
-      if (resto > 0) {
-        resultado += ' ' + convertirNumeroALetras(resto);
-      }
-    }
-    
-    // Agregar decimales
-    if (decimales > 0) {
-      resultado += ' CON ' + decimales.toString().padStart(2, '0') + '/100';
-    }
-    
-    return resultado;
-  };
 
   const getEstadoBadgeColor = (estado) => {
     switch (estado?.toUpperCase()) {
@@ -384,30 +332,6 @@ const ListaInscripcionesPage = () => {
     return horariosFiltrados;
   };
 
-  const ordenarDetallesPorDia = (detalles) => {
-    // Orden de los días de la semana
-    const ordenDias = {
-      'LUNES': 1,
-      'MARTES': 2,
-      'MIERCOLES': 3,
-      'JUEVES': 4,
-      'VIERNES': 5,
-      'SABADO': 6,
-      'DOMINGO': 7
-    };
-
-    return [...detalles].sort((a, b) => {
-      const diaA = ordenDias[a.dia?.toUpperCase()?.replace('Í', 'I')?.replace('Á', 'A')] || 999;
-      const diaB = ordenDias[b.dia?.toUpperCase()?.replace('Í', 'I')?.replace('Á', 'A')] || 999;
-      
-      // Si tienen el mismo día, ordenar por hora de inicio
-      if (diaA === diaB) {
-        return (a.horaInicio || '').localeCompare(b.horaInicio || '');
-      }
-      
-      return diaA - diaB;
-    });
-  };
 
   useEffect(() => {
     // Agregar estilos de impresión cuando el componente se monta

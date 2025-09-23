@@ -39,86 +39,86 @@ const formatoPeso = (valor) => {
 };
 
 // Función para exportar el reporte actual como PDF
-const exportarReportePDF = (datosFinancieros, periodo) => {
-  import('jspdf').then(({ default: jsPDF }) => {
-    import('jspdf-autotable').then(() => {
-      const doc = new jsPDF();
-      const fecha = new Date().toLocaleDateString('es-PE');
-      const periodoTexto = periodo === 'mensual' ? 'Mensual' : 
-                          periodo === 'trimestral' ? 'Trimestral' : 'Anual';
-      
-      // Título del reporte
-      doc.setFontSize(18);
-      doc.text('Reporte de Ventas y Finanzas', 15, 20);
-      
-      doc.setFontSize(12);
-      doc.text(`Periodo: ${periodoTexto} - Generado el ${fecha}`, 15, 30);
-      
-      // Ingresos Totales
-      doc.setFontSize(14);
-      doc.text('Resumen Financiero', 15, 40);
-      
-      doc.setFontSize(11);
-      doc.text(`Ingresos Totales: ${formatoPeso(datosFinancieros.ingresosTotales)}`, 20, 50);
-      
-      // Tabla de desglose de ingresos
-      doc.autoTable({
-        startY: 55,
-        head: [['Categoría', 'Ingresos']],
-        body: datosFinancieros.datosDesglosados.map(item => [
-          item.categoria, 
-          formatoPeso(item.valor)
-        ]),
-        headStyles: { fillColor: [30, 41, 59] },
-        margin: { left: 15 },
-      });
-      
-      // Productos más vendidos
-      doc.setFontSize(14);
-      doc.text('Top 5 Productos más Vendidos', 15, doc.lastAutoTable.finalY + 15);
-      
-      doc.autoTable({
-        startY: doc.lastAutoTable.finalY + 20,
-        head: [['Producto', 'Unidades', 'Ingresos']],
-        body: datosFinancieros.productosMasVendidos.slice(0, 5).map(item => [
-          item.nombre, 
-          item.unidades, 
-          formatoPeso(item.ingresos)
-        ]),
-        headStyles: { fillColor: [30, 41, 59] },
-        margin: { left: 15 },
-      });
-      
-      // Análisis de Rentabilidad
-      doc.setFontSize(14);
-      doc.text('Análisis de Rentabilidad', 15, doc.lastAutoTable.finalY + 15);
-      
-      doc.autoTable({
-        startY: doc.lastAutoTable.finalY + 20,
-        head: [['Producto', 'Costo', 'Precio Venta', 'Margen (%)']],
-        body: datosFinancieros.analisisRentabilidad.map(item => [
-          item.producto, 
-          formatoPeso(item.costo), 
-          formatoPeso(item.precio), 
-          `${item.margen.toFixed(1)}%`
-        ]),
-        headStyles: { fillColor: [30, 41, 59] },
-        margin: { left: 15 },
-      });
-      
-      // Pie de página
-      const pageCount = doc.internal.getNumberOfPages();
-      for(let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(10);
-        doc.text(`GymBuster - Página ${i} de ${pageCount}`, 15, doc.internal.pageSize.height - 10);
-      }
-      
-      // Guardar el PDF
-      doc.save(`Reporte_Ventas_Finanzas_${periodo}_${fecha.replace(/\//g, '-')}.pdf`);
-    });
-  });
-};
+// const exportarReportePDF = (datosFinancieros, periodo) => {
+//   import('jspdf').then(({ default: jsPDF }) => {
+//     import('jspdf-autotable').then(() => {
+//       const doc = new jsPDF();
+//       const fecha = new Date().toLocaleDateString('es-PE');
+//       const periodoTexto = periodo === 'mensual' ? 'Mensual' : 
+//                           periodo === 'trimestral' ? 'Trimestral' : 'Anual';
+//       
+//       // Título del reporte
+//       doc.setFontSize(18);
+//       doc.text('Reporte de Ventas y Finanzas', 15, 20);
+//       
+//       doc.setFontSize(12);
+//       doc.text(`Periodo: ${periodoTexto} - Generado el ${fecha}`, 15, 30);
+//       
+//       // Ingresos Totales
+//       doc.setFontSize(14);
+//       doc.text('Resumen Financiero', 15, 40);
+//       
+//       doc.setFontSize(11);
+//       doc.text(`Ingresos Totales: ${formatoPeso(datosFinancieros.ingresosTotales)}`, 20, 50);
+//       
+//       // Tabla de desglose de ingresos
+//       doc.autoTable({
+//         startY: 55,
+//         head: [['Categoría', 'Ingresos']],
+//         body: datosFinancieros.datosDesglosados.map(item => [
+//           item.categoria, 
+//           formatoPeso(item.valor)
+//         ]),
+//         headStyles: { fillColor: [30, 41, 59] },
+//         margin: { left: 15 },
+//       });
+//       
+//       // Productos más vendidos
+//       doc.setFontSize(14);
+//       doc.text('Top 5 Productos más Vendidos', 15, doc.lastAutoTable.finalY + 15);
+//       
+//       doc.autoTable({
+//         startY: doc.lastAutoTable.finalY + 20,
+//         head: [['Producto', 'Unidades', 'Ingresos']],
+//         body: datosFinancieros.productosMasVendidos.slice(0, 5).map(item => [
+//           item.nombre, 
+//           item.unidades, 
+//           formatoPeso(item.ingresos)
+//         ]),
+//         headStyles: { fillColor: [30, 41, 59] },
+//         margin: { left: 15 },
+//       });
+//       
+//       // Análisis de Rentabilidad
+//       doc.setFontSize(14);
+//       doc.text('Análisis de Rentabilidad', 15, doc.lastAutoTable.finalY + 15);
+//       
+//       doc.autoTable({
+//         startY: doc.lastAutoTable.finalY + 20,
+//         head: [['Producto', 'Costo', 'Precio Venta', 'Margen (%)']],
+//         body: datosFinancieros.analisisRentabilidad.map(item => [
+//           item.producto, 
+//           formatoPeso(item.costo), 
+//           formatoPeso(item.precio), 
+//           `${item.margen.toFixed(1)}%`
+//         ]),
+//         headStyles: { fillColor: [30, 41, 59] },
+//         margin: { left: 15 },
+//       });
+//       
+//       // Pie de página
+//       const pageCount = doc.internal.getNumberOfPages();
+//       for(let i = 1; i <= pageCount; i++) {
+//         doc.setPage(i);
+//         doc.setFontSize(10);
+//         doc.text(`GymBuster - Página ${i} de ${pageCount}`, 15, doc.internal.pageSize.height - 10);
+//       }
+//       
+//       // Guardar el PDF
+//       doc.save(`Reporte_Ventas_Finanzas_${periodo}_${fecha.replace(/\//g, '-')}.pdf`);
+//     });
+//   });
+// };
 
 const ReportesVentasFinanzas = () => {
   const [periodo, setPeriodo] = useState('mensual');
@@ -138,24 +138,6 @@ const ReportesVentasFinanzas = () => {
         // Ingresos totales
         ingresosTotales: datosBackend.ingresosTotales?.ingresosTotales || 0,
         ingresosEsteMes: datosBackend.ingresosTotales?.ingresosEsteMes || 0,
-        
-        // Crecimiento
-        porcentajeCrecimiento: datosBackend.crecimiento?.porcentajeCrecimiento || 0,
-        tendencia: datosBackend.crecimiento?.tendencia || 'neutral',
-        tieneHistorial: datosBackend.crecimiento?.tieneHistorial || false,
-        mensajeComparativa: datosBackend.crecimiento?.mensaje || 'Sin datos de comparación',
-        fechaPrimeraVenta: datosBackend.crecimiento?.fechaPrimeraVenta || null,
-        
-        // Comparativa mensual
-        comparativaMensual: Array.isArray(datosBackend.crecimiento?.comparativaMensual) && datosBackend.crecimiento.comparativaMensual.length > 0
-          ? datosBackend.crecimiento.comparativaMensual.map(comp => ({
-              mes: comp.nombreMes || comp.mes || 'Mes',
-              cambio: comp.porcentajeCrecimiento || 0,
-              positivo: (comp.porcentajeCrecimiento || 0) >= 0,
-              ventasActuales: parseFloat(comp.ventasActuales) || 0,
-              ventasAnteriores: parseFloat(comp.ventasAnteriores) || 0
-            }))
-          : [],
         
         // Transacciones
         totalTransacciones: datosBackend.totalTransacciones?.totalTransacciones || 0,
@@ -221,20 +203,6 @@ const ReportesVentasFinanzas = () => {
             ],
         
         // Métricas adicionales
-        prediccionProximoMes: datosBackend.tendencias?.prediccion?.prediccionProximoMes || 0,
-        prediccionesMeses: Array.isArray(datosBackend.tendencias?.prediccion?.prediccionesMeses) && datosBackend.tendencias.prediccion.prediccionesMeses.length > 0
-          ? datosBackend.tendencias.prediccion.prediccionesMeses.map(pred => ({
-              mes: pred.mes || 'Mes',
-              prediccion: parseFloat(pred.prediccion) || 0,
-              confianza: pred.confianza || 'Baja',
-              tendencia: pred.tendencia || 'Estable'
-            }))
-          : [
-              { mes: 'Agosto', prediccion: 0, confianza: 'Baja', tendencia: 'Estable' },
-              { mes: 'Septiembre', prediccion: 0, confianza: 'Baja', tendencia: 'Estable' },
-              { mes: 'Octubre', prediccion: 0, confianza: 'Baja', tendencia: 'Estable' }
-            ],
-        confiabilidadPrediccion: datosBackend.tendencias?.prediccion?.confiabilidad || 'Muy Baja',
         analisisTendencia: datosBackend.tendencias?.analisisTendencia || 'Sin datos',
         margenBruto: datosBackend.rentabilidad?.resumenRentabilidad?.margenBruto || 0,
         utilidadBruta: datosBackend.rentabilidad?.resumenRentabilidad?.utilidadBruta || 0
@@ -479,18 +447,7 @@ const ReportesVentasFinanzas = () => {
                   </Flex>
                 </Card>
                 
-                <Card decoration="top" decorationColor="emerald">
-                  <Flex justifyContent="start" className="space-x-4">
-                    <TrendingUp size={28} className="text-emerald-500" />
-                    <div>
-                      <Text>Crecimiento vs. Periodo Anterior</Text>
-                      <Metric className={datosFinancieros.porcentajeCrecimiento >= 0 ? 'text-emerald-500' : 'text-red-500'}>
-                        {datosFinancieros.porcentajeCrecimiento >= 0 ? '+' : ''}{datosFinancieros.porcentajeCrecimiento?.toFixed(1)}%
-                      </Metric>
-                    </div>
-                  </Flex>
-                </Card>
-                
+
                 <Card decoration="top" decorationColor="amber">
                   <Flex justifyContent="start" className="space-x-4">
                     <ShoppingBag size={28} className="text-amber-500" />
@@ -641,134 +598,9 @@ const ReportesVentasFinanzas = () => {
             </Card>
 
             <Grid numItems={1} numItemsSm={2} className="gap-6">
-              <Card>
-                <Title>Comparativa con Periodo Anterior</Title>
-                <Text>Diferencia porcentual respecto al periodo anterior</Text>
-                
-                {datosFinancieros?.tieneHistorial ? (
-                  <div className="mt-6">
-                    {datosFinancieros.comparativaMensual.length > 0 ? (
-                      datosFinancieros.comparativaMensual.map((item, index) => (
-                        <div key={index} className="mb-4 flex items-center justify-between">
-                          <Text>{item.mes}</Text>
-                          <div className="text-right">
-                            <Text className={`font-medium ${item.positivo ? 'text-emerald-500' : 'text-red-500'}`}>
-                              {item.positivo ? '+' : ''}{item.cambio.toFixed(1)}%
-                            </Text>
-                            <Text className="text-xs text-gray-500">
-                              ${formatoPeso(item.ventasActuales)} vs ${formatoPeso(item.ventasAnteriores)}
-                            </Text>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="mt-6 text-center py-8">
-                        <Text className="text-gray-500">
-                          Datos de comparación en proceso de cálculo
-                        </Text>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="mt-6 text-center py-8">
-                    <div className="mb-4">
-                      <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </div>
-                    <Text className="text-gray-600 font-medium mb-2">
-                      {datosFinancieros?.mensajeComparativa || 'Sin datos de comparación disponibles'}
-                    </Text>
-                    {datosFinancieros?.fechaPrimeraVenta && (
-                      <Text className="text-sm text-gray-500">
-                        Primera venta registrada: {new Date(datosFinancieros.fechaPrimeraVenta).toLocaleDateString('es-ES')}
-                      </Text>
-                    )}
-                    <Text className="text-sm text-gray-500 mt-2">
-                      Se necesitan datos de al menos 2 períodos para mostrar comparativas
-                    </Text>
-                  </div>
-                )}
-              </Card>
 
-              <Card>
-                <Title>Predicción Próximo Periodo</Title>
-                <Text>Proyección de ventas para los próximos meses</Text>
-                
-                {datosFinancieros?.prediccionesMeses && datosFinancieros.prediccionesMeses.length > 0 ? (
-                  <div>
-                    {/* Información de confiabilidad */}
-                    <div className="mt-4 mb-6 p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <Text className="text-sm font-medium">Confiabilidad de la predicción:</Text>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          datosFinancieros.confiabilidadPrediccion === 'Alta' ? 'bg-green-100 text-green-800' :
-                          datosFinancieros.confiabilidadPrediccion === 'Media' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {datosFinancieros.confiabilidadPrediccion}
-                        </span>
-                      </div>
-                    </div>
 
-                    {/* Predicciones detalladas */}
-                    <div className="mb-6 space-y-3">
-                      {datosFinancieros.prediccionesMeses.map((prediccion, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                          <div>
-                            <Text className="font-medium">{prediccion.mes}</Text>
-                            <Text className="text-xs text-gray-500">{prediccion.tendencia}</Text>
-                          </div>
-                          <div className="text-right">
-                            <Text className="font-semibold text-blue-600">
-                              {formatoPeso(prediccion.prediccion)}
-                            </Text>
-                            <Text className={`text-xs ${
-                              prediccion.confianza === 'Alta' ? 'text-green-600' :
-                              prediccion.confianza === 'Media' ? 'text-yellow-600' :
-                              'text-red-600'
-                            }`}>
-                              Confianza: {prediccion.confianza}
-                            </Text>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
 
-                    {/* Gráfico de predicción */}
-                    <LineChart
-                      data={[
-                        ...datosTendencia,
-                        ...datosFinancieros.prediccionesMeses.map(pred => ({
-                          date: pred.mes.substring(0, 3),
-                          "Ventas": pred.prediccion,
-                          "Predicción": pred.prediccion
-                        }))
-                      ]}
-                      index="date"
-                      categories={["Ventas", "Predicción"]}
-                      colors={["indigo", "amber"]}
-                      valueFormatter={formatoPeso}
-                      className="h-60 mt-4"
-                      connectNulls={false}
-                    />
-                  </div>
-                ) : (
-                  <div className="mt-6 text-center py-8">
-                    <div className="mb-4">
-                      <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </div>
-                    <Text className="text-gray-600 font-medium mb-2">
-                      Predicciones no disponibles
-                    </Text>
-                    <Text className="text-sm text-gray-500">
-                      Se necesitan al menos 2 meses de datos históricos para generar predicciones confiables
-                    </Text>
-                  </div>
-                )}
-              </Card>
             </Grid>
             </div>
           </TabPanel>
