@@ -9,7 +9,7 @@ import {
   isValidName,
   ERROR_MESSAGES
 } from '../../../../shared/utils/validations';
-import { isOver18, getMaxBirthDate } from '../../../../shared/utils/dateUtils';
+import { isValidAgeForRole, getMaxBirthDateByAge } from '../../../../shared/utils/dateUtils';
 import './modal-styles.css';
 
 const initialFormData = {
@@ -103,8 +103,8 @@ const ClienteFormPage = () => {
 
     if (!formData.fechaNacimiento) {
       errors.fechaNacimiento = 'La fecha de nacimiento es requerida';
-    } else if (!isOver18(formData.fechaNacimiento)) {
-      errors.fechaNacimiento = ERROR_MESSAGES.age;
+    } else if (!isValidAgeForRole(formData.fechaNacimiento, 'CLIENTE')) {
+      errors.fechaNacimiento = 'Debe ser mayor de 11 años';
     }
 
     if (!formData.genero) {
@@ -300,13 +300,13 @@ const ClienteFormPage = () => {
                 value={formData.fechaNacimiento}
                 onChange={handleInputChange}
                 error={formErrors.fechaNacimiento}
-                max={getMaxBirthDate()}
+                max={getMaxBirthDateByAge(11)}
                 placeholder="Seleccione fecha de nacimiento"
               />
               {formErrors.fechaNacimiento && (
                 <p className="text-red-500 text-xs mt-1">{formErrors.fechaNacimiento}</p>
               )}
-              <p className="text-gray-500 text-xs mt-1">Debe ser mayor de 18 años.</p>
+              <p className="text-gray-500 text-xs mt-1">Debe ser mayor de 11 años.</p>
         
             </div>
           </div>

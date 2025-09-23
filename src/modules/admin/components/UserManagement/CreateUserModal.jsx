@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Title, TextInput, Button } from '@tremor/react';
 import { EnhancedSelect as Select, SelectItem } from './SelectWrapper';
 import { register } from '../../../../shared/services/authAPI';
@@ -14,9 +14,11 @@ import {
   isValidName,
   isValidSalary,
   isValidMaxQuota,
+  isValidAgeForRole,
+  getAgeErrorMessage,
   ERROR_MESSAGES
 } from '../../../../shared/utils/validations';
-import { isOver18, getMaxBirthDate } from '../../../../shared/utils/dateUtils';
+import { getMaxBirthDate, getMaxBirthDateByAge, getMinimumAgeByRole } from '../../../../shared/utils/dateUtils';
 
 const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
   const notify = useNotification();
@@ -42,6 +44,26 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
   const [formData, setFormData] = useState(initialFormData);
   const [formErrors, setFormErrors] = useState({});
 
+  // Validación dinámica de edad cuando cambia el rol o la fecha de nacimiento
+  useEffect(() => {
+    if (formData.fechaNacimiento && formData.rol) {
+      const isValidAge = isValidAgeForRole(formData.fechaNacimiento, formData.rol);
+      if (!isValidAge) {
+        setFormErrors(prev => ({
+          ...prev,
+          fechaNacimiento: getAgeErrorMessage(formData.rol)
+        }));
+      } else {
+        // Si la edad es válida, limpiamos el error de fecha de nacimiento
+        setFormErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.fechaNacimiento;
+          return newErrors;
+        });
+      }
+    }
+  }, [formData.rol, formData.fechaNacimiento]);
+
 
 
   const handleInputChange = (e) => {
@@ -49,13 +71,30 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
     let finalValue = value;
 
     // Si cambia el rol, limpiamos los campos de usuario y contraseña si no es recepcionista
-    if (name === 'rol' && value !== 'RECEPCIONISTA') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value,
-        nombreUsuario: '',
-        contrasena: ''
-      }));
+    if (name === 'rol') {
+      if (value !== 'RECEPCIONISTA') {
+        setFormData(prev => ({
+          ...prev,
+          [name]: value,
+          nombreUsuario: '',
+          contrasena: ''
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [name]: value
+        }));
+      }
+      
+      // Si hay una fecha de nacimiento y el nuevo rol la permite, limpiamos el error
+      if (formData.fechaNacimiento && isValidAgeForRole(formData.fechaNacimiento, value)) {
+        setFormErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.fechaNacimiento;
+          return newErrors;
+        });
+      }
+      
       return;
     }
 
@@ -162,8 +201,8 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
 
     if (!formData.fechaNacimiento) {
       errors.fechaNacimiento = 'La fecha de nacimiento es requerida';
-    } else if (!isOver18(formData.fechaNacimiento)) {
-      errors.fechaNacimiento = ERROR_MESSAGES.age;
+    } else if (!isValidAgeForRole(formData.fechaNacimiento, formData.rol)) {
+      errors.fechaNacimiento = getAgeErrorMessage(formData.rol);
     }
 
     if (!formData.rol) {
@@ -397,12 +436,16 @@ const CreateUserModal = ({ isOpen, onClose, onUserCreated }) => {
                   name="fechaNacimiento"
                   value={formData.fechaNacimiento}
                   onChange={handleInputChange}
-                  max={getMaxBirthDate()}
+                  max={formData.rol ? getMaxBirthDateByAge(getMinimumAgeByRole(formData.rol)) : getMaxBirthDate()}
                 />
                 {formErrors.fechaNacimiento && (
                   <p className="text-red-500 text-xs mt-1">{formErrors.fechaNacimiento}</p>
                 )}
-                <p className="text-gray-500 text-xs mt-1">Debe ser mayor de 18 años para registrarse.</p>
+                <p className="text-gray-500 text-xs mt-1">
+                  {formData.rol 
+                    ? `Debe tener al menos ${getMinimumAgeByRole(formData.rol)} años para el rol de ${formData.rol.toLowerCase()}.`
+                    : 'Seleccione un rol primero para ver la restricción de edad.'}
+                </p>
               </div>
             </div>
 

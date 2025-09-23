@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 export const AuthContext = createContext();
@@ -12,6 +12,65 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Función para normalizar roles (pueden venir en diferentes formatos)
+  const normalizarRoles = (roles) => {
+    if (!Array.isArray(roles)) {
+      if (typeof roles === 'string') {
+        roles = [roles]; // Si es string, lo convertimos a array
+      } else {
+        console.warn('Roles no es un array ni string:', roles);
+        return []; // Array vacío si roles no es válido
+      }
+    }
+    
+    return roles.map(rol => {
+      if (typeof rol === 'string') {
+        return rol.toUpperCase();
+      } else if (rol && rol.authority) {
+        return rol.authority.toUpperCase();
+      } else if (rol && rol.nombre) {
+        return rol.nombre.toUpperCase();
+      }
+      return '';
+    });
+  };
+  
+  // Función para verificar si un usuario tiene un rol específico
+  const verificarRol = useCallback((roles, rolBuscado) => {
+    const rolesNormalizados = normalizarRoles(roles);
+    return rolesNormalizados.some(rol => 
+      rol === rolBuscado || 
+      rol === `ROLE_${rolBuscado}` || 
+      rol.includes(rolBuscado)
+    );
+  }, []);
+  
+  // Función para verificar si el usuario tiene algún rol de empleado
+  const verificarRolEmpleado = (roles) => {
+    return verificarRol(roles, 'ADMIN') || 
+           verificarRol(roles, 'RECEPCIONISTA') || 
+           verificarRol(roles, 'ENTRENADOR');
+  };
+
+  // Función para verificar si el usuario tiene acceso permitido a la plataforma
+  // Solo ADMIN y RECEPCIONISTA pueden acceder
+  const tieneAccesoPermitido = useCallback((roles) => {
+    return verificarRol(roles, 'ADMIN') || verificarRol(roles, 'RECEPCIONISTA');
+  }, [verificarRol]);
+
+  // Función auxiliar para obtener el rol principal del usuario
+  const obtenerRolPrincipal = (roles) => {
+    console.log('Obteniendo rol principal de:', roles);
+    const rolesNormalizados = normalizarRoles(roles);
+    console.log('Roles normalizados:', rolesNormalizados);
+    
+    // Buscar roles en orden de prioridad, ahora considerando el prefijo ROLE_
+    if (rolesNormalizados.some(r => r.includes('ADMIN') || r === 'ROLE_ADMIN')) return 'ADMIN';
+    if (rolesNormalizados.some(r => r.includes('RECEP') || r === 'ROLE_RECEPCIONISTA')) return 'RECEPCIONISTA';
+    if (rolesNormalizados.some(r => r.includes('ENTRENADOR') || r.includes('TRAINER') || r === 'ROLE_ENTRENADOR')) return 'ENTRENADOR';
+    return 'CLIENTE';
+  };
 
   // Configurar interceptor para incluir el token en todas las solicitudes
   useEffect(() => {
@@ -43,15 +102,42 @@ export const AuthProvider = ({ children }) => {
           if (storedUser) {
             try {
               const parsedUser = JSON.parse(storedUser);
+              
+              // Verificar que el usuario tenga acceso permitido
+              if (!tieneAccesoPermitido(parsedUser.roles || [])) {
+                console.log('Usuario sin acceso permitido, cerrando sesión');
+                logout();
+                setLoading(false);
+                return;
+              }
+              
               setUser(parsedUser);
               setIsAuthenticated(true);
             } catch (e) {
               console.error('Error al parsear la información del usuario almacenada', e);
+              logout();
             }
           } else {
-            // Si no hay información almacenada, asumimos que el token es válido
-            // y permitimos que el usuario navegue (el interceptor manejará la invalidez del token)
-            setIsAuthenticated(true);
+            // Si no hay información almacenada pero hay token, validar contra el servidor
+            try {
+              const response = await axios.get(`${API_URL}/auth/me`);
+              const userData = response.data;
+              
+              // Verificar que el usuario tenga acceso permitido
+              if (!tieneAccesoPermitido(userData.roles || [])) {
+                console.log('Usuario sin acceso permitido según servidor, cerrando sesión');
+                logout();
+                setLoading(false);
+                return;
+              }
+              
+              setUser(userData);
+              setIsAuthenticated(true);
+              localStorage.setItem('user', JSON.stringify(userData));
+            } catch (err) {
+              console.error('Error al verificar con el servidor', err);
+              logout();
+            }
           }
         } catch (err) {
           console.error('Error al verificar la autenticación', err);
@@ -62,7 +148,7 @@ export const AuthProvider = ({ children }) => {
     };
     
     checkAuth();
-  }, [token]);
+  }, [token, tieneAccesoPermitido]);
 
   const login = async (credentials) => {
     try {
@@ -80,7 +166,7 @@ export const AuthProvider = ({ children }) => {
 
       }      // La respuesta debería ser un objeto JwtResponse según tu backend
       // {id: number, token: string, tipo: string, nombreUsuario: string, roles: string[]}
-      const { id, token, nombreUsuario, roles, hasMultipleRoles } = response.data;
+      const { id, token, nombreUsuario, roles } = response.data;
       
 
       if (!token) {
@@ -92,23 +178,23 @@ export const AuthProvider = ({ children }) => {
       setToken(token);
 
       
-      // Verificar si el usuario tiene roles duales (cliente y empleado)
-      const tieneRolCliente = verificarRol(roles, 'CLIENTE');
-      const tieneRolEmpleado = verificarRolEmpleado(roles);
-      const tieneMultiplesRoles = hasMultipleRoles || (tieneRolCliente && tieneRolEmpleado);
+      // Verificar si el usuario tiene algún rol con acceso a la plataforma
+      // Solo ADMIN y RECEPCIONISTA pueden acceder
+      const rolPrincipal = obtenerRolPrincipal(roles);
       
+      if (!tieneAccesoPermitido(roles)) {
+        logout(); // Limpiar cualquier token almacenado
+        throw new Error('Tu cuenta no tiene acceso a la plataforma');
+      }
 
       // Crear objeto de usuario a partir de los datos obtenidos
       const userFromResponse = {
-        id: id || 0, // Ahora obtenemos el ID desde la respuesta
+        id: id || 0,
         username: nombreUsuario,
-        roles: roles || [], // Guardar el array de roles completo
-        role: obtenerRolPrincipal(roles || []), // Para compatibilidad con código existente
         name: nombreUsuario,
-        token: token, // Guardar el token para usar en las llamadas a API
-        tieneRolCliente: tieneRolCliente,
-        tieneRolEmpleado: tieneRolEmpleado,
-        tieneMultiplesRoles: tieneMultiplesRoles
+        roles: roles || [],
+        role: rolPrincipal,
+        token: token
       };
 
       console.log('Usuario procesado:', userFromResponse);
@@ -145,58 +231,6 @@ export const AuthProvider = ({ children }) => {
       setError(mensaje);
       throw new Error(mensaje);
     }
-  };
-  // Función para normalizar roles (pueden venir en diferentes formatos)
-  const normalizarRoles = (roles) => {
-    if (!Array.isArray(roles)) {
-      if (typeof roles === 'string') {
-        roles = [roles]; // Si es string, lo convertimos a array
-      } else {
-        console.warn('Roles no es un array ni string:', roles);
-        return []; // Array vacío si roles no es válido
-      }
-    }
-    
-    return roles.map(rol => {
-      if (typeof rol === 'string') {
-        return rol.toUpperCase();
-      } else if (rol && rol.authority) {
-        return rol.authority.toUpperCase();
-      } else if (rol && rol.nombre) {
-        return rol.nombre.toUpperCase();
-      }
-      return '';
-    });
-  };
-  
-  // Función para verificar si un usuario tiene un rol específico
-  const verificarRol = (roles, rolBuscado) => {
-    const rolesNormalizados = normalizarRoles(roles);
-    return rolesNormalizados.some(rol => 
-      rol === rolBuscado || 
-      rol === `ROLE_${rolBuscado}` || 
-      rol.includes(rolBuscado)
-    );
-  };
-  
-  // Función para verificar si el usuario tiene algún rol de empleado
-  const verificarRolEmpleado = (roles) => {
-    return verificarRol(roles, 'ADMIN') || 
-           verificarRol(roles, 'RECEPCIONISTA') || 
-           verificarRol(roles, 'ENTRENADOR');
-  };
-
-  // Función auxiliar para obtener el rol principal del usuario
-  const obtenerRolPrincipal = (roles) => {
-    console.log('Obteniendo rol principal de:', roles);
-    const rolesNormalizados = normalizarRoles(roles);
-    console.log('Roles normalizados:', rolesNormalizados);
-    
-    // Buscar roles en orden de prioridad, ahora considerando el prefijo ROLE_
-    if (rolesNormalizados.some(r => r.includes('ADMIN') || r === 'ROLE_ADMIN')) return 'ADMIN';
-    if (rolesNormalizados.some(r => r.includes('RECEP') || r === 'ROLE_RECEPCIONISTA')) return 'RECEPCIONISTA';
-    if (rolesNormalizados.some(r => r.includes('ENTRENADOR') || r.includes('TRAINER') || r === 'ROLE_ENTRENADOR')) return 'ENTRENADOR';
-    return 'CLIENTE';
   };
 
   const logout = () => {

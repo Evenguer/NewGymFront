@@ -168,28 +168,6 @@ export const ENDPOINTS = {
     RENTABILIDAD: `${BASE_URL}/reportes-ventas/rentabilidad`
   },
 
-  // Reportes de Alquileres
-  REPORTES_ALQUILERES: {
-    // Estado de alquileres
-    ESTADOS_MES_ACTUAL: `${BASE_URL}/reportes/alquileres/estados/mes-actual`,
-    ESTADOS_TRIMESTRE_ACTUAL: `${BASE_URL}/reportes/alquileres/estados/trimestre-actual`,
-    ESTADOS_ANIO_ACTUAL: `${BASE_URL}/reportes/alquileres/estados/anio-actual`,
 
-    // Top 10 piezas más alquiladas
-    TOP10_PIEZAS_MES_ACTUAL: `${BASE_URL}/reportes/alquileres/top10-piezas/mes-actual`,
-    TOP10_PIEZAS_TRIMESTRE_ACTUAL: `${BASE_URL}/reportes/alquileres/top10-piezas/trimestre-actual`,
-    TOP10_PIEZAS_ANIO_ACTUAL: `${BASE_URL}/reportes/alquileres/top10-piezas/anio-actual`,
-
-    // Alquileres con mora pendiente
-    PENDIENTES_MORA: `${BASE_URL}/reportes/alquileres/pendientes-mora`,
-
-    // Ganancias
-    INGRESOS_MES_ACTUAL: `${BASE_URL}/reportes/alquileres/ingresos-mes-actual`,
-    INGRESOS_TRIMESTRE_ACTUAL: `${BASE_URL}/reportes/alquileres/ingresos-trimestre-actual`,
-    INGRESOS_ANIO_ACTUAL: `${BASE_URL}/reportes/alquileres/ingresos-anio-actual`,
-
-    // Tendencias últimos 6 meses (parametrizable)
-    TENDENCIA: (meses = 6) => `${BASE_URL}/reportes/alquileres/tendencia?meses=${meses}`
-  }
 
 };

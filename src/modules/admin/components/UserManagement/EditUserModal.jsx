@@ -201,8 +201,7 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
     
     // Validar las reglas de negocio para cambios de rol
     if (formData.rol) {
-      // Determinar el rol actual y el nuevo rol
-      const rolActual = normalizeRole(user.roles || user.role || '');
+      // Determinar el nuevo rol
       const nuevoRol = formData.rol;
       // Ya no se restringe el cambio de empleado a cliente
       // Solo validar que el rol seleccionado sea válido
@@ -439,8 +438,9 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
                   
                   {user && ['ADMIN', 'ENTRENADOR', 'RECEPCIONISTA'].includes(normalizeRole(user.roles || user.role)) && (
                     <div className="mb-2 p-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-md text-xs">
-                      <strong>Importante:</strong> Un empleado puede volver a tener el rol de Cliente si es necesario. 
-                      Puedes cambiar el rol de empleado a cliente sin restricciones.
+                      <strong>Importante:</strong> Todos los usuarios mantienen el rol de Cliente por defecto.
+                      Si un empleado cambia de rol (por ejemplo, de Entrenador a Cliente), su rol anterior no se elimina, solo queda inactivo para fines de historial.
+                      Para restringir su acceso al sistema, simplemente desactiva su estado.
                     </div>
                   )}
                   
