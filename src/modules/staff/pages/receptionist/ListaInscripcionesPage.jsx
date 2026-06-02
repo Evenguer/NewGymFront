@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { inscripcionAPI } from '../../services/InscripcionAPI';
+import logoImage from '../../../../assets/LOGO BUSSTER GYM.png';
 import {
   Card,
   Table,
@@ -543,7 +544,7 @@ const ListaInscripcionesPage = () => {
                   {/* Encabezado de la Empresa */}
                   <div className="text-center border-b pb-3">
                     <img 
-                      src="/src/assets/LOGO BUSSTER GYM.png" 
+                      src={logoImage} 
                       alt="Logo Busster Gym" 
                       className="h-12 mx-auto mb-1"
                     />

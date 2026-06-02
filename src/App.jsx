@@ -23,7 +23,6 @@ import PlanesPage from './modules/admin/pages/PlanesPage';
 import HorarioPage from './modules/admin/pages/HorarioPage';
 import AsistenciaEmpleadoPage from './modules/admin/pages/AsistenciaEmpleadoPage';
 import ListaAsistenciaPage from './modules/admin/pages/ListaAsistenciaPage';
-import EspecialidadesPage from './modules/admin/pages/EspecialidadesPage';
 import ReportesVentasFinanzas from './modules/admin/pages/reportes/VentasFinanzasReportes';
 import AlquileresFinanzasReportes from './modules/admin/pages/reportes/AlquileresFinanzasReportes';
 
@@ -37,23 +36,11 @@ const PlaceholderPage = () => (
   </div>
 );
 
+// Páginas placeholders para características en desarrollo
 const RolesPage = PlaceholderPage;
-const HorariosPage = PlaceholderPage;
 const AsistenciaPersonalPage = PlaceholderPage;
-const EvaluacionPage = PlaceholderPage;
-const AsistenciaClientesPage = PlaceholderPage;
-const InscripcionesPage = PlaceholderPage;
 const DesempenoEntrenadoresPage = PlaceholderPage;
-
-// Staff pages placeholders
-const ClientesStaffPage = PlaceholderPage;
-const NuevaInscripcionPage = PlaceholderPage;
-const GestionarInscripcionesPage = PlaceholderPage;
-const RegistrarAsistenciaPage = PlaceholderPage;
-const VerAsistenciasPage = PlaceholderPage;
-const ProductosStockPage = PlaceholderPage;
 const ProductosEquipamientoPage = PlaceholderPage;
-const PlanesStaffPage = PlaceholderPage;
 
 
 // Staff Pages
@@ -62,9 +49,6 @@ import ProductoPage from './modules/staff/pages/receptionist/ProductoPage';
 import CategoriaPage from './modules/staff/pages/receptionist/CategoriaPage';
 import VentaPage from './modules/staff/pages/receptionist/VentaPage';
 import ListaPage from './modules/staff/pages/receptionist/ListaPage';
-import AlquilerPage from './modules/staff/pages/receptionist/AlquilerPage';
-import ListaAlquileresPage from './modules/staff/pages/receptionist/ListaAlquileresPage';
-import  EspecialidadListaPage from './modules/staff/pages/receptionist/EspecialidadListaPage';
 import PlanesListaPage from './modules/staff/pages/receptionist/PlanesListaPage';
 import ClienteFormPage from './modules/staff/pages/receptionist/ClienteFormPage';
 import MaquinariaPage from './modules/staff/pages/receptionist/MaquinariaPage';
@@ -77,18 +61,7 @@ import StaffDashboardSwitch from './modules/staff/pages/StaffDashboardSwitch';
 // Protected Route
 import ProtectedRoute from './components/common/ProtectedRoute';
 
-// Placeholder para páginas pendientes de implementar
-const PlaceholderPage = () => (
-  <div className="flex justify-center items-center h-full">
-    <div className="text-center">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">En Construcción</h2>
-      <p className="text-gray-600">Esta página está en desarrollo</p>
-    </div>
-  </div>
-);
 
-const AsistenciaClientesPage = PlaceholderPage;
-const EvaluacionPage = PlaceholderPage;
 
 function App() {
   return (
@@ -119,15 +92,12 @@ function App() {
               <Route path="horarios" element={<HorarioPage />} />
               <Route path="asistencia" element={<AsistenciaEmpleadoPage />} />
               <Route path="lista-asistencia" element={<ListaAsistenciaPage />} />
-              <Route path="evaluacion" element={<EvaluacionPage />} />
               
               {/* Servicios del Gimnasio */}
               <Route path="categorias" element={<CategoriasPage />} />
-              <Route path="especialidades" element={<EspecialidadesPage />} />
               <Route path="planes" element={<PlanesPage />} />
               
               {/* Asistencia y Monitoreo */}
-              <Route path="asistencia/clientes" element={<AsistenciaClientesPage />} />
               <Route path="verificar" element={<VerificarInscripcionPage />} />
               <Route path="lista-clientes" element={<ListaAsistenciaCliente />} />
               
@@ -166,11 +136,8 @@ function App() {
               
               {/* Inscripciones */}
               <Route path="inscripciones" element={<InscripcionPage />} />
-              <Route path="alquileres/nuevo" element={<AlquilerPage />} />
-              <Route path="alquileres/historial" element={<ListaAlquileresPage />} />
-              <Route path="clientes" element={<ClientesStaffPage />} />
               <Route path="cliente/nuevo" element={<ClienteFormPage />} />
-              <Route path="inscripciones/nueva" element={<NuevaInscripcionPage />} />
+      
 
               <Route path="historial" element={<ListaInscripcionesPage/>} />
               <Route path="asistencias/registrar" element={<AsistenciaEmpleadoPage />} />

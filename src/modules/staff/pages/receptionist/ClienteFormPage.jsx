@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Card, Title, TextInput, Button } from '@tremor/react';
 import { register } from '../../../../shared/services/authAPI';
+import { consultarDNI } from '../../../../shared/services/reniecAPI';
 import { toast, Toaster } from 'react-hot-toast';
 import {
   isValidDNI,
@@ -11,6 +12,15 @@ import {
 } from '../../../../shared/utils/validations';
 import { isValidAgeForRole, getMaxBirthDateByAge } from '../../../../shared/utils/dateUtils';
 import './modal-styles.css';
+
+const toTitleCase = (value) =>
+  (value || '')
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 
 const initialFormData = {
   nombre: '',
@@ -27,6 +37,56 @@ const ClienteFormPage = () => {
   const [formData, setFormData] = useState(initialFormData);
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [consultandoDni, setConsultandoDni] = useState(false);
+  const dniRequestRef = useRef(0);
+
+  const cargarDatosPorDni = async (dni) => {
+    const requestId = ++dniRequestRef.current;
+    setConsultandoDni(true);
+
+    try {
+      const data = await consultarDNI(dni);
+
+      if (dniRequestRef.current !== requestId) {
+        return;
+      }
+
+      const nombre = toTitleCase(data?.nombres || '');
+      const apellidos = [data?.apellidoPaterno, data?.apellidoMaterno]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+      setFormData((prevData) => ({
+        ...prevData,
+        nombre: nombre || prevData.nombre,
+        apellidos: toTitleCase(apellidos) || prevData.apellidos
+      }));
+
+      setFormErrors((prev) => ({
+        ...prev,
+        nombre: undefined,
+        apellidos: undefined,
+        dni: undefined
+      }));
+    } catch (error) {
+      if (dniRequestRef.current === requestId) {
+        console.error('Error consultando DNI:', error);
+        toast.error('No se pudo consultar el DNI. Puedes continuar completando los datos manualmente.', {
+          duration: 3500,
+          position: 'top-right',
+          style: {
+            background: '#EF4444',
+            color: '#fff'
+          }
+        });
+      }
+    } finally {
+      if (dniRequestRef.current === requestId) {
+        setConsultandoDni(false);
+      }
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -45,7 +105,7 @@ const ClienteFormPage = () => {
       case 'nombre':
       case 'apellidos':
         // Solo permitir letras y espacios
-        finalValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+        finalValue = toTitleCase(value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''));
         break;
       case 'nombreUsuario':
         // Solo permitir letras, números y guiones bajos
@@ -59,6 +119,10 @@ const ClienteFormPage = () => {
       ...prevData,
       [name]: finalValue
     }));
+
+    if (name === 'dni' && finalValue.length === 8) {
+      cargarDatosPorDni(finalValue);
+    }
 
     // Limpiar el error del campo si existe
     if (formErrors[name]) {
@@ -261,6 +325,12 @@ const ClienteFormPage = () => {
                 <p className="text-red-500 text-xs mt-1">{formErrors.dni}</p>
               )}
               <p className="text-gray-500 text-xs mt-1">{getHelpMessage('dni')}</p>
+              {consultandoDni && (
+                <p className="text-blue-600 text-xs mt-1">Consultando datos del DNI...</p>
+              )}
+              {!consultandoDni && formData.dni.length === 8 && formData.nombre && formData.apellidos && (
+                <p className="text-green-600 text-xs mt-1">Datos completados automáticamente desde RENIEC.</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Correo</label>

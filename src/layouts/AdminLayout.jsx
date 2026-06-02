@@ -107,7 +107,6 @@ const AdminLayout = () => {
       submenu: true,
       submenuItems: [
         { title: 'Reportes de Ventas y Finanzas', path: '/admin/reportes/ventas-finanzas' }
-        { title: 'Reportes de Ventas y Finanzas', path: '/admin/reportes/ventas-finanzas' },
 
       ],
     },
